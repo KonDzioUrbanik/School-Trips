@@ -36,4 +36,5 @@ public class KlasaController {
     public KlasaModel updateNazwa(@PathVariable Long id, @RequestBody KlasaDto klasaDto) {
         return klasaService.updateNazwyKlasy(id, klasaDto);
     }
+
 }
