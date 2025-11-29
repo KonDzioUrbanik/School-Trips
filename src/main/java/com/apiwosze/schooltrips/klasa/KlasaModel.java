@@ -13,7 +13,8 @@ import java.util.List;
 public class KlasaModel { //
     @Id
     @GeneratedValue
-    private Long id_klasy; // Klucz podstawowy
+    @Column(name = "id_klasy")
+    private Long id; // Klucz podstawowy
 
     private String nazwa; //pole
 
