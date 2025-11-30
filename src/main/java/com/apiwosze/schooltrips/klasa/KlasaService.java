@@ -42,7 +42,7 @@ public class KlasaService {                         //Będziemy opisywać tutaj 
         return klasaRepository.findAll();
     }
 
-    public KlasaModel updateKlasy(KlasaDto klasaDto){       //zmiana profilu
+    public KlasaModel updateProfilKlasy(KlasaDto klasaDto){       //zmiana profilu
         KlasaModel klasaModelEdit = klasaRepository.findByNazwa(klasaDto.nazwa())
                 .orElseThrow(() -> new IllegalArgumentException("Nie ma takiej klasy!"));
         klasaModelEdit.setProfil(klasaDto.profil());
