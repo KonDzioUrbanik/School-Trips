@@ -11,7 +11,8 @@ import java.util.List;
 @Table(name = "nauczyciel")
 public class NauczycielModel {
     @Id @GeneratedValue
-    private Long id_nauczyciela;
+    @Column(name = "id_nauczyciela")
+    private Long id;
     private String imie;
     private String nazwisko;
     private String przedmiot;

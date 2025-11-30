@@ -14,7 +14,8 @@ import java.util.List;
 public class UczenModel {
     @Id
     @GeneratedValue
-    private Long id_ucznia; //Klucz podstawowy
+    @Column(name = "id_ucznia")
+    private Long id; //Klucz podstawowy
 
     private String imie;    //pole
 

@@ -14,7 +14,8 @@ import java.util.List;
 @Table(name = "wycieczka")
 public class WycieczkaModel {
     @Id @GeneratedValue
-    private Long id_wycieczki;
+    @Column(name = "id_wycieczki")
+    private Long id;
     private String nazwa;
     private LocalDate data_rozpoczecia;
     private LocalDate data_zakonczenia;
