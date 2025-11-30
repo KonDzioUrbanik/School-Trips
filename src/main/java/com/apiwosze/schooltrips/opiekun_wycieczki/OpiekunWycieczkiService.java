@@ -8,5 +8,6 @@ public class OpiekunWycieczkiService {
 
     public OpiekunWycieczkiService(OpiekunWycieczkiRepository opiekunWycieczkiRepository) {
         this.opiekunWycieczkiRepository = opiekunWycieczkiRepository;
+
     }
 }

@@ -29,7 +29,7 @@ public class KlasaController {
     }
     @PutMapping         //endpoint do aktualizacji profilu
     public KlasaModel updateProfil(@RequestBody KlasaDto klasaDto) {
-        return klasaService.updateKlasy(klasaDto);
+        return klasaService.updateProfilKlasy(klasaDto);
     }
 
     @PutMapping("/{id}")    //endpoint do aktualizacji nazwy klasy
