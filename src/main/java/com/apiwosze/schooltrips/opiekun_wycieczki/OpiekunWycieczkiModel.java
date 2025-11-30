@@ -11,7 +11,8 @@ import lombok.Data;
 public class OpiekunWycieczkiModel {
     @Id
     @GeneratedValue
-    private Long id_opiekun_wycieczki;
+    @Column(name = "id_opiekun_wycieczki")
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     private Rola rola;

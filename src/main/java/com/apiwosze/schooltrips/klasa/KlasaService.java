@@ -16,7 +16,7 @@ public class KlasaService {                         //Będziemy opisywać tutaj 
         this.klasaRepository = klasaRepository;
     }
 
-    public KlasaModel addKlasa(KlasaDto klasaDto) {
+    public KlasaModel createKlasa(KlasaDto klasaDto) {
         if (klasaRepository.existsByNazwa(klasaDto.nazwa())){
             throw new IllegalArgumentException("Klasa o takiej nazwie już istnieje!");
         }

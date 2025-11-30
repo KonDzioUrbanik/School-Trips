@@ -15,7 +15,7 @@ public class KlasaController {
 
     @PostMapping        //endpoint do tworzenia klasy
     public KlasaModel createKlasa(@RequestBody KlasaDto klasaDto){ //Ta adnotacja mówi springowi że ma szukać w body/JSON a nie w adres URL
-       return klasaService.addKlasa(klasaDto);
+       return klasaService.createKlasa(klasaDto);
     }
 
     @DeleteMapping      //endpoint do usuwania klasy

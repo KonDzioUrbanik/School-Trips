@@ -13,7 +13,8 @@ import java.time.LocalDate;
 @Table(name = "uczestnictwo")
 public class UczestnictwoModel {
     @Id @GeneratedValue
-    private Long id_uczestnictwa;
+    @Column(name = "id_uczestnictwa")
+    private Long id;
     private LocalDate data_zapisania;
     private boolean czy_jedzie;
     private String uwagi;

@@ -13,7 +13,8 @@ import java.time.LocalDate;
 public class ZgodaRodzicaModel {
     @Id
     @GeneratedValue
-    private Long id_zgody;
+    @Column(name = "id_zgody")
+    private Long id;
     private LocalDate data_podpisania;
     @Enumerated(EnumType.STRING)
     private Forma forma;
