@@ -52,6 +52,10 @@ public class NauczycielService {
         nauczycielModelEdit.setNazwisko(nauczycielDto.nazwisko());
         return nauczycielRepository.save(nauczycielModelEdit);
     }
+    public NauczycielModel getNauczycielById(Long id){
+        return nauczycielRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Nie ma takiego nauczyciela!"));
+    }
 
 
 }
