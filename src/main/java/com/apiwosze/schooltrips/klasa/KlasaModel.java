@@ -1,25 +1,24 @@
 package com.apiwosze.schooltrips.klasa;
 
 import com.apiwosze.schooltrips.uczen.UczenModel;
+import com.fasterxml.jackson.annotation.JsonIgnore; // <--- Import
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.util.List;
 
-@Data //Taki skrót nie trzeba pisać getterów i setterów jest to po impl Lombok'a
-@Entity//Powiedzenie springowi, że jest to Encja i ma jakby takie pola stworzyć
-@Table(name = "klasa") // Jakby tego nie było to by nam stworzyło tabele o nazwie ModelKlasa
-// ModelKlasa dlatego, aby było wszystko wiadome co gdzie jest MODEL, SERVICE, REPOSITORY
-public class KlasaModel { //
+@Data
+@Entity
+@Table(name = "klasa")
+public class KlasaModel {
     @Id
     @GeneratedValue
     @Column(name = "id_klasy")
-    private Long id; // Klucz podstawowy
+    private Long id;
 
-    private String nazwa; //pole
+    private String nazwa;
+    private String profil;
 
-    private String profil; //pole
-
-    @OneToMany(mappedBy = "klasa")      //połączenie z tabelą uczeń relacją jeden do wielu (Jedna klasa do wielu uczniów)
-    private List<UczenModel> uczniowie; //to jest takie jakby "Wyczytanie wszystkich WIELU uczniów" ..Many zazwyczaj jest List
+    @OneToMany(mappedBy = "klasa")
+    @JsonIgnore // <--- DODAJ TO
+    private List<UczenModel> uczniowie;
 }

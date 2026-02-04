@@ -100,16 +100,15 @@ function renderWycieczki(wycieczki) {
 function filterWycieczki(status) {
     state.currentFilter = status;
 
-
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.filter === status);
     });
 
-
     const filtered = status === 'wszystkie'
         ? state.wycieczki
-        : state.wycieczki.filter(w => w.status?.toLowerCase() === status.toLowerCase());
+        // ZMIANA PONIŻEJ: Dodano bezpieczne sprawdzanie (w.status || '')
+        : state.wycieczki.filter(w => (w.status || '').toLowerCase() === status.toLowerCase());
 
     renderWycieczki(filtered);
 }

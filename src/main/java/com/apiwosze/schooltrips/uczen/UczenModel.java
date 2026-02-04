@@ -2,9 +2,9 @@ package com.apiwosze.schooltrips.uczen;
 
 import com.apiwosze.schooltrips.klasa.KlasaModel;
 import com.apiwosze.schooltrips.uczestnictwo.UczestnictwoModel;
+import com.fasterxml.jackson.annotation.JsonIgnore; // <--- Import
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,18 +15,17 @@ public class UczenModel {
     @Id
     @GeneratedValue
     @Column(name = "id_ucznia")
-    private Long id; //Klucz podstawowy
+    private Long id;
 
-    private String imie;    //pole
-
-    private String nazwisko;    //pole
-
-    private LocalDate data_urodzenia; //pole
+    private String imie;
+    private String nazwisko;
+    private LocalDate data_urodzenia;
 
     @ManyToOne
-    @JoinColumn(name = "id_klasy") //Połączenie z tabelą klasa "Dołączenie", pozwolenie na połączenia i odwrotna relacja wiele uczniów do jednej klasy
+    @JoinColumn(name = "id_klasy")
     private KlasaModel klasa;
 
-    @OneToMany(mappedBy = "uczen") //Połączenie z tabelą uczestnictwo relcja jeden do wielu (Jeden uczeń w wielu uczestnictwach w formularzu/wierszu
+    @OneToMany(mappedBy = "uczen")
+    @JsonIgnore // <--- DODAJ TO
     private List<UczestnictwoModel> uczestniczenia;
 }

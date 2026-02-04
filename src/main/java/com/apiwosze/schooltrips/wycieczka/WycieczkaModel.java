@@ -2,9 +2,9 @@ package com.apiwosze.schooltrips.wycieczka;
 
 import com.apiwosze.schooltrips.opiekun_wycieczki.OpiekunWycieczkiModel;
 import com.apiwosze.schooltrips.uczestnictwo.UczestnictwoModel;
+import com.fasterxml.jackson.annotation.JsonIgnore; // <--- WAŻNE: Dodaj ten import
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,10 +26,10 @@ public class WycieczkaModel {
     private Status status;
 
     @OneToMany(mappedBy = "wycieczka")
+    @JsonIgnore // <--- DODAJ TO
     List<UczestnictwoModel> uczestniczenie;
 
     @OneToMany(mappedBy = "wycieczkaOpiekun")
+    @JsonIgnore // <--- DODAJ TO
     private List<OpiekunWycieczkiModel> opiekunowie;
-
-
 }

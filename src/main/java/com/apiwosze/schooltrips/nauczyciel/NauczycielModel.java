@@ -1,9 +1,9 @@
 package com.apiwosze.schooltrips.nauczyciel;
 
 import com.apiwosze.schooltrips.opiekun_wycieczki.OpiekunWycieczkiModel;
+import com.fasterxml.jackson.annotation.JsonIgnore; // <--- Import
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.util.List;
 
 @Data
@@ -18,8 +18,7 @@ public class NauczycielModel {
     private String przedmiot;
     private String telefon_kontaktowy;
 
-
     @OneToMany(mappedBy = "nauczyciel")
+    @JsonIgnore // <--- DODAJ TO
     private List<OpiekunWycieczkiModel> opiekunowie;
-
 }
