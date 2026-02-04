@@ -268,9 +268,16 @@ async function registerForTrip(event) {
 
 async function submitParentalConsent(uczestnictwoId, forma) {
     const zgodaData = {
-        id_uczestnictwa: uczestnictwoId,
+
+        uczestnictwoId: uczestnictwoId, // POPRAWIONE
+
         forma: forma,
-        data_wystawienia: new Date().toISOString().split('T')[0]
+
+        // BYŁO: data_wystawienia: ...
+        dataPodpisania: new Date().toISOString().split('T')[0], // POPRAWIONE (zgodnie z DTO)
+
+        // TEGO BRAKOWAŁO:
+        czyDostarczona: true
     };
 
     try {
