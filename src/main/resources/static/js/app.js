@@ -116,15 +116,13 @@ function filterWycieczki(status) {
 
 async function loadKlasy() {
     try {
-        const response = await fetch(`${API_BASE}/klasy`); // <--- ZMIANA TUTAJ
+        // BYŁO: const response = await fetch(`${API_BASE}/klasa`);
+        // MA BYĆ (dodaj "y" na końcu):
+        const response = await fetch(`${API_BASE}/klasy`);
 
         if (!response.ok) throw new Error('Nie udało się załadować klas');
 
         state.klasy = await response.json();
-
-        // Dodatkowy log, żebyś widział w konsoli czy pobrało
-        console.log('Pobrane klasy:', state.klasy);
-
         populateKlasaSelect();
     } catch (error) {
         console.error('Error loading klasy:', error);
