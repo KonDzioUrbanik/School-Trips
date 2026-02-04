@@ -181,7 +181,7 @@ async function registerStudent(event) {
         imie: document.getElementById('uczen-imie').value,
         nazwisko: document.getElementById('uczen-nazwisko').value,
         data_urodzenia: document.getElementById('uczen-data-urodzenia').value,
-        id_klasy: parseInt(document.getElementById('uczen-klasa').value)
+        klasaId: parseInt(document.getElementById('uczen-klasa').value) // <--- POPRAWIONE
     };
 
     try {
@@ -227,10 +227,10 @@ async function registerForTrip(event) {
 
 
     const uczestnictwoData = {
-        id_uczen: uczenId,
-        id_wycieczki: wycieczkaId,
-        data_zapisania: new Date().toISOString().split('T')[0],
-        czy_jedzie: czyJedzie,
+        uczenId: uczenId,           // Było: id_uczen
+        wycieczkaId: wycieczkaId,   // Było: id_wycieczki
+        // data_zapisania - usuń to, backend ustawia datę sam w Service
+        czyJedzie: czyJedzie,       // Było: czy_jedzie
         uwagi: uwagi || ''
     };
 
