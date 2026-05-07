@@ -1,5 +1,5 @@
 const API_BASE = '/api';
-
+let jwtToken = null; // Zmienna do przechowywania naszego tokena
 
 const state = {
     wycieczki: [],
@@ -8,12 +8,50 @@ const state = {
     currentFilter: 'wszystkie'
 };
 
+// Funkcja logująca w tle (na potrzeby testów, żeby pobrać token dla admina)
+async function authenticateTestUser() {
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'admin', password: 'admin123' })
+        });
 
-document.addEventListener('DOMContentLoaded', () => {
+        if (response.ok) {
+            const data = await response.json();
+            jwtToken = data.token;
+            console.log("Pomyślnie zalogowano i pobrano token JWT!");
+        } else {
+            console.error("Nie udało się zalogować. Błędne dane lub backend leży.");
+            showAlert('error', 'Błąd autoryzacji: Nie udało się zalogować.');
+        }
+    } catch (error) {
+        console.error('Błąd logowania:', error);
+    }
+}
+
+// Nasza własna funkcja pobierająca, która automatycznie dodaje token do nagłówka
+async function fetchWithAuth(url, options = {}) {
+    if (!options.headers) {
+        options.headers = {};
+    }
+    // Jeśli mamy token, dodajemy nagłówek Authorization
+    if (jwtToken) {
+        options.headers['Authorization'] = `Bearer ${jwtToken}`;
+    }
+    return fetch(url, options);
+}
+
+// Zmieniono na async, aby poczekać na logowanie przed pobraniem danych
+document.addEventListener('DOMContentLoaded', async () => {
     initNavigation();
+
+    // Najpierw pobieramy token JWT
+    await authenticateTestUser();
+
+    // Następnie ładujemy dane (korzystając już z tokena)
     loadInitialData();
 });
-
 
 function initNavigation() {
     const navTabs = document.querySelectorAll('.nav-tab');
@@ -21,7 +59,6 @@ function initNavigation() {
         tab.addEventListener('click', () => {
             const target = tab.dataset.section;
             switchSection(target);
-
 
             navTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
@@ -37,7 +74,6 @@ function switchSection(sectionId) {
     document.getElementById(sectionId).classList.add('active');
 }
 
-
 async function loadInitialData() {
     await Promise.all([
         loadWycieczki(),
@@ -46,10 +82,9 @@ async function loadInitialData() {
     ]);
 }
 
-
 async function loadWycieczki() {
     try {
-        const response = await fetch(`${API_BASE}/wycieczka`);
+        const response = await fetchWithAuth(`${API_BASE}/wycieczka`);
         if (!response.ok) throw new Error('Nie udało się załadować wycieczek');
 
         state.wycieczki = await response.json();
@@ -57,10 +92,9 @@ async function loadWycieczki() {
         populateWycieczkaSelect();
     } catch (error) {
         console.error('Error loading wycieczki:', error);
-        showAlert('error', 'Nie udało się załadować wycieczek. Sprawdź czy serwer działa.');
+        showAlert('error', 'Nie udało się załadować wycieczek. Sprawdź czy serwer działa i czy jesteś zalogowany.');
     }
 }
-
 
 function renderWycieczki(wycieczki) {
     const container = document.getElementById('trips-container');
@@ -96,7 +130,6 @@ function renderWycieczki(wycieczki) {
     `).join('');
 }
 
-
 function filterWycieczki(status) {
     state.currentFilter = status;
 
@@ -107,18 +140,14 @@ function filterWycieczki(status) {
 
     const filtered = status === 'wszystkie'
         ? state.wycieczki
-        // ZMIANA PONIŻEJ: Dodano bezpieczne sprawdzanie (w.status || '')
         : state.wycieczki.filter(w => (w.status || '').toLowerCase() === status.toLowerCase());
 
     renderWycieczki(filtered);
 }
 
-
 async function loadKlasy() {
     try {
-        // BYŁO: const response = await fetch(`${API_BASE}/klasa`);
-        // MA BYĆ (dodaj "y" na końcu):
-        const response = await fetch(`${API_BASE}/klasy`);
+        const response = await fetchWithAuth(`${API_BASE}/klasy`);
 
         if (!response.ok) throw new Error('Nie udało się załadować klas');
 
@@ -129,10 +158,9 @@ async function loadKlasy() {
     }
 }
 
-
 async function loadUczniowie() {
     try {
-        const response = await fetch(`${API_BASE}/uczen`);
+        const response = await fetchWithAuth(`${API_BASE}/uczen`);
         if (!response.ok) throw new Error('Nie udało się załadować uczniów');
 
         state.uczniowie = await response.json();
@@ -141,7 +169,6 @@ async function loadUczniowie() {
         console.error('Error loading uczniowie:', error);
     }
 }
-
 
 function populateKlasaSelect() {
     const select = document.getElementById('uczen-klasa');
@@ -173,7 +200,6 @@ function populateWycieczkaSelect() {
         ).join('');
 }
 
-
 async function registerStudent(event) {
     event.preventDefault();
 
@@ -181,11 +207,11 @@ async function registerStudent(event) {
         imie: document.getElementById('uczen-imie').value,
         nazwisko: document.getElementById('uczen-nazwisko').value,
         data_urodzenia: document.getElementById('uczen-data-urodzenia').value,
-        klasaId: parseInt(document.getElementById('uczen-klasa').value) // <--- POPRAWIONE
+        klasaId: parseInt(document.getElementById('uczen-klasa').value)
     };
 
     try {
-        const response = await fetch(`${API_BASE}/uczen`, {
+        const response = await fetchWithAuth(`${API_BASE}/uczen`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -202,7 +228,6 @@ async function registerStudent(event) {
         showAlert('success', `Uczeń ${formData.imie} ${formData.nazwisko} został pomyślnie zarejestrowany!`);
         event.target.reset();
 
-
         await loadUczniowie();
 
     } catch (error) {
@@ -210,7 +235,6 @@ async function registerStudent(event) {
         showAlert('error', 'Wystąpił błąd podczas rejestracji ucznia. Spróbuj ponownie.');
     }
 }
-
 
 async function registerForTrip(event) {
     event.preventDefault();
@@ -225,17 +249,15 @@ async function registerForTrip(event) {
         return;
     }
 
-
     const uczestnictwoData = {
-        uczenId: uczenId,           // Było: id_uczen
-        wycieczkaId: wycieczkaId,   // Było: id_wycieczki
-        // data_zapisania - usuń to, backend ustawia datę sam w Service
-        czyJedzie: czyJedzie,       // Było: czy_jedzie
+        uczenId: uczenId,
+        wycieczkaId: wycieczkaId,
+        czyJedzie: czyJedzie,
         uwagi: uwagi || ''
     };
 
     try {
-        const response = await fetch(`${API_BASE}/uczestnictwo`, {
+        const response = await fetchWithAuth(`${API_BASE}/uczestnictwo`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -246,7 +268,6 @@ async function registerForTrip(event) {
         if (!response.ok) throw new Error('Nie udało się zapisać na wycieczkę');
 
         const uczestnictwo = await response.json();
-
 
         const formaZgody = document.getElementById('zgoda-forma').value;
         if (formaZgody && czyJedzie) {
@@ -265,23 +286,16 @@ async function registerForTrip(event) {
     }
 }
 
-
 async function submitParentalConsent(uczestnictwoId, forma) {
     const zgodaData = {
-
-        uczestnictwoId: uczestnictwoId, // POPRAWIONE
-
+        uczestnictwoId: uczestnictwoId,
         forma: forma,
-
-        // BYŁO: data_wystawienia: ...
-        dataPodpisania: new Date().toISOString().split('T')[0], // POPRAWIONE (zgodnie z DTO)
-
-        // TEGO BRAKOWAŁO:
+        dataPodpisania: new Date().toISOString().split('T')[0],
         czyDostarczona: true
     };
 
     try {
-        const response = await fetch(`${API_BASE}/zgoda_rodzica`, {
+        const response = await fetchWithAuth(`${API_BASE}/zgoda_rodzica`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -298,7 +312,6 @@ async function submitParentalConsent(uczestnictwoId, forma) {
         showAlert('error', 'Nie udało się zapisać zgody rodzica');
     }
 }
-
 
 function formatDate(dateString) {
     if (!dateString) return '';
@@ -318,12 +331,9 @@ function showAlert(type, message) {
         </div>
     `;
 
-
     const activeSection = document.querySelector('.section.active');
     if (activeSection) {
-
         activeSection.insertAdjacentHTML('afterbegin', alertHTML);
-
 
         setTimeout(() => {
             const alert = activeSection.querySelector('.alert');
@@ -335,7 +345,6 @@ function showAlert(type, message) {
     }
 }
 
-
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
     @keyframes fadeOut {
@@ -344,4 +353,3 @@ styleSheet.textContent = `
     }
 `;
 document.head.appendChild(styleSheet);
-
