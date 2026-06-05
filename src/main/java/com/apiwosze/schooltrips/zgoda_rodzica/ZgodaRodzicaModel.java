@@ -1,26 +1,30 @@
-package com.apiwosze.schooltrips.zgoda_rodzica;
+package com.apiwosze.schooltrips.zgoda_rodzica; // Definicja pakietu dla zgód rodziców
 
+import com.apiwosze.schooltrips.common.BaseAuditEntity; // Import klasy bazowej audytu
+import com.apiwosze.schooltrips.uczestnictwo.UczestnictwoModel; // Import encji uczestnictwa w wycieczce
+import jakarta.persistence.*; // Import adnotacji mapowania JPA
+import lombok.Data; // Import Lombok @Data
 
-import com.apiwosze.schooltrips.uczestnictwo.UczestnictwoModel;
-import jakarta.persistence.*;
-import lombok.Data;
+import java.time.LocalDate; // Import klasy daty Javy
 
-import java.time.LocalDate;
+@Data // Lombok automatycznie generuje gettery i settery
+@Entity // Oznacza klasę jako encję JPA mapowaną na tabelę
+@Table(name = "zgoda_rodzica") // Wskazanie na nazwę tabeli w bazie danych
+public class ZgodaRodzicaModel extends BaseAuditEntity { // Dziedziczenie po klasie audytowej
+    
+    @Id // Klucz główny
+    @GeneratedValue // Automatyczne generowanie wartości klucza głównego
+    @Column(name = "id_zgody") // Mapowanie na kolumnę "id_zgody"
+    private Long id; // Unikalny identyfikator zgody
 
-@Data
-@Entity
-@Table(name = "zgoda_rodzica")
-public class ZgodaRodzicaModel {
-    @Id
-    @GeneratedValue
-    @Column(name = "id_zgody")
-    private Long id;
-    private LocalDate data_podpisania;
-    @Enumerated(EnumType.STRING)
-    private Forma forma;
-    private boolean czy_dostarczona;
+    private LocalDate data_podpisania; // Data podpisania zgody przez rodzica
 
-    @OneToOne
-    @JoinColumn(name = "id_uczestnictwa")
-    private UczestnictwoModel uczestnictwo;
+    @Enumerated(EnumType.STRING) // Mapowanie enuma formy dostarczenia jako tekst w bazie danych
+    private Forma forma; // Forma dostarczenia zgody (np. PAPIEROWA, ELEKTRONICZNA)
+
+    private boolean czy_dostarczona; // Flaga logiczna czy zgoda została faktycznie dostarczona do nauczyciela
+
+    @OneToOne // Relacja jeden-do-jednego: zgoda rodzica jest przypisana do dokładnie jednego zapisu na wycieczkę
+    @JoinColumn(name = "id_uczestnictwa") // Klucz obcy wskazujący na tabelę uczestnictwa
+    private UczestnictwoModel uczestnictwo; // Referencja do encji uczestnictwa
 }

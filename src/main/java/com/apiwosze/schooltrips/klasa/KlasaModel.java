@@ -1,5 +1,6 @@
 package com.apiwosze.schooltrips.klasa; // Definicja pakietu dla modułu Klasy
 
+import com.apiwosze.schooltrips.common.BaseAuditEntity; // Import klasy bazowej audytu
 import com.apiwosze.schooltrips.uczen.UczenModel; // Import encji ucznia powiązanej relacją
 import com.fasterxml.jackson.annotation.JsonIgnore; // Import adnotacji zapobiegającej nieskończonej pętli przy serializacji JSON-a
 import jakarta.persistence.*; // Import adnotacji mapowania JPA
@@ -9,7 +10,7 @@ import java.util.List; // Import listy Javy
 @Data // Wygenerowanie metod dostępowych getter/setter/toString przez Lombok
 @Entity // Oznacza klasę jako encję reprezentującą tabelę w bazie danych
 @Table(name = "klasa") // Wskazanie na nazwę tabeli w bazie danych jako "klasa"
-public class KlasaModel {
+public class KlasaModel extends BaseAuditEntity {
     
     @Id // Oznaczenie pola jako klucza głównego
     @GeneratedValue // Automatyczne generowanie wartości klucza głównego

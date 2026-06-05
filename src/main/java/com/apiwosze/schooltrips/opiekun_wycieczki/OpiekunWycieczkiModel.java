@@ -1,5 +1,6 @@
 package com.apiwosze.schooltrips.opiekun_wycieczki; // Definicja pakietu opiekunów wycieczki
 
+import com.apiwosze.schooltrips.common.BaseAuditEntity; // Import klasy bazowej audytu
 import com.apiwosze.schooltrips.nauczyciel.NauczycielModel; // Import encji nauczyciela
 import com.apiwosze.schooltrips.wycieczka.WycieczkaModel; // Import encji wycieczki
 import jakarta.persistence.*; // Import adnotacji mapowania JPA
@@ -8,7 +9,7 @@ import lombok.Data; // Import Lombok @Data
 @Data // Adnotacja Lombok generująca gettery, settery, toString, equals i hashCode
 @Entity // Oznacza klasę jako encję reprezentującą tabelę w bazie danych
 @Table(name = "opiekun_wycieczki") // Wskazuje nazwę tabeli w bazie danych
-public class OpiekunWycieczkiModel {
+public class OpiekunWycieczkiModel extends BaseAuditEntity {
     
     @Id // Klucz główny encji
     @GeneratedValue // Automatyczne generowanie wartości klucza głównego

@@ -22,14 +22,17 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter; // Deklaracja referencji filtra JWT do przechwytywania tokenów
     private final CustomAuthenticationEntryPoint authenticationEntryPoint; // Punkt wejścia w przypadku braku tokenu (401)
     private final CustomAccessDeniedHandler accessDeniedHandler; // Handler wywoływany przy braku uprawnień (403)
+    private final RateLimitingFilter rateLimitingFilter; // Deklaracja filtra Rate Limiting do ograniczania spamu zapytań
 
     // Konstruktor wstrzykujący wymagane komponenty zależności
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
                           CustomAuthenticationEntryPoint authenticationEntryPoint,
-                          CustomAccessDeniedHandler accessDeniedHandler) {
+                          CustomAccessDeniedHandler accessDeniedHandler,
+                          RateLimitingFilter rateLimitingFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.rateLimitingFilter = rateLimitingFilter;
     }
 
     // Główny Bean definiujący łańcuch filtrów bezpieczeństwa (SecurityFilterChain)
@@ -47,14 +50,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Zezwolenie każdemu na dostęp do strony głównej, plików statycznych oraz dokumentacji Swagger API i OpenAPI docs
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // Zezwolenie każdemu na endpoint logowania w celu pobrania tokenu JWT
-                        .requestMatchers("/api/auth/login").permitAll()
+                        // Zezwolenie każdemu na endpointy logowania, odświeżania tokenu i wylogowania
+                        .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         // Każde inne żądanie do aplikacji wymaga bycia uwierzytelnionym (posiadania ważnego tokenu JWT)
                         .anyRequest().authenticated()
                 )
                 // Zdefiniowanie polityki sesji jako bezstanowej (stateless) - serwer nie tworzy sesji HTTP na dysku/w pamięci
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Dodanie naszego własnego filtra JWT przed standardowym filtrem uwierzytelniania UsernamePasswordAuthenticationFilter
+                // Dodanie filtra Rate Limiting przed filtrem JWT, aby odrzucić przeciążenia przed kosztownym dekodowaniem tokenów
+                .addFilterBefore(rateLimitingFilter, JwtAuthFilter.class)
+                // Dodanie filtra JWT przed standardowym filtrem uwierzytelniania
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build(); // Zwrócenie skonfigurowanego łańcucha filtrów

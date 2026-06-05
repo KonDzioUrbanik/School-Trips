@@ -1,5 +1,6 @@
 package com.apiwosze.schooltrips.nauczyciel; // Definicja pakietu dla modułu Nauczycieli
 
+import com.apiwosze.schooltrips.common.BaseAuditEntity; // Import klasy bazowej audytu
 import com.apiwosze.schooltrips.opiekun_wycieczki.OpiekunWycieczkiModel; // Import encji łączącej nauczyciela z rolą opiekuna wycieczki
 import com.fasterxml.jackson.annotation.JsonIgnore; // Import adnotacji zapobiegającej pętli serializacji JSON
 import jakarta.persistence.*; // Import adnotacji mapowania JPA
@@ -9,7 +10,7 @@ import java.util.List; // Import listy Javy
 @Data // Lombok automatycznie generuje gettery, settery, toString, equals i hashCode
 @Entity // Oznacza klasę jako encję powiązaną z tabelą bazy danych
 @Table(name = "nauczyciel") // Wskazanie nazwy tabeli w bazie danych
-public class NauczycielModel {
+public class NauczycielModel extends BaseAuditEntity {
     
     @Id // Oznaczenie klucza głównego
     @GeneratedValue // Automatyczne generowanie wartości klucza głównego
