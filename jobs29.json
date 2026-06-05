@@ -1,0 +1,129 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 79711989795,
+      "run_id": 27010306027,
+      "workflow_name": "Deploy APIWOSZE",
+      "head_branch": "main",
+      "run_url": "https://api.github.com/repos/KonDzioUrbanik/School-Trips/actions/runs/27010306027",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOQe0HfM8AAAASjzRwIw",
+      "head_sha": "6a7d8eacfd37768ea2b9630ff4ad00d0299d155e",
+      "url": "https://api.github.com/repos/KonDzioUrbanik/School-Trips/actions/jobs/79711989795",
+      "html_url": "https://github.com/KonDzioUrbanik/School-Trips/actions/runs/27010306027/job/79711989795",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-06-05T10:43:19Z",
+      "started_at": "2026-06-05T10:43:22Z",
+      "completed_at": "2026-06-05T10:44:42Z",
+      "name": "build-and-deploy",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-06-05T10:43:23Z",
+          "completed_at": "2026-06-05T10:43:26Z"
+        },
+        {
+          "name": "Build appleboy/ssh-action@v1.0.3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-06-05T10:43:26Z",
+          "completed_at": "2026-06-05T10:43:28Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-06-05T10:43:28Z",
+          "completed_at": "2026-06-05T10:43:28Z"
+        },
+        {
+          "name": "Set up JDK 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-06-05T10:43:28Z",
+          "completed_at": "2026-06-05T10:43:28Z"
+        },
+        {
+          "name": "Log in to Docker Hub",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-06-05T10:43:28Z",
+          "completed_at": "2026-06-05T10:43:29Z"
+        },
+        {
+          "name": "Build and push Docker image",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-06-05T10:43:29Z",
+          "completed_at": "2026-06-05T10:44:16Z"
+        },
+        {
+          "name": "Deploy via SSH",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-06-05T10:44:16Z",
+          "completed_at": "2026-06-05T10:44:38Z"
+        },
+        {
+          "name": "Post Build and push Docker image",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-06-05T10:44:38Z",
+          "completed_at": "2026-06-05T10:44:38Z"
+        },
+        {
+          "name": "Post Log in to Docker Hub",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-06-05T10:44:38Z",
+          "completed_at": "2026-06-05T10:44:39Z"
+        },
+        {
+          "name": "Post Set up JDK 21",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-06-05T10:44:39Z",
+          "completed_at": "2026-06-05T10:44:39Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-06-05T10:44:39Z",
+          "completed_at": "2026-06-05T10:44:39Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-06-05T10:44:39Z",
+          "completed_at": "2026-06-05T10:44:39Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/KonDzioUrbanik/School-Trips/check-runs/79711989795",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000000231,
+      "runner_name": "GitHub Actions 1000000231",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}
