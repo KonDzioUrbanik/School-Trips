@@ -117,6 +117,19 @@ async function handleLogin(event) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="loading"></span> Logowanie...';
 
+    // Próba wylogowania poprzedniej sesji w bazie danych za pomocą starego tokenu (jeśli istnieje),
+    // aby zapobiec konfliktowi (409) przy tworzeniu nowego Refresh Tokenu na serwerze.
+    if (jwtToken) {
+        try {
+            await fetchWithAuth('/api/auth/logout', { method: 'POST' });
+        } catch (e) {
+            console.warn('Nie udało się wyczyścić poprzedniej sesji na serwerze:', e);
+        }
+        localStorage.removeItem('jwtToken');
+        jwtToken = null;
+        currentUser = null;
+    }
+
     try {
         const response = await fetch('/api/auth/login', {
             method: 'POST',
@@ -138,8 +151,12 @@ async function handleLogin(event) {
             showAlert('success', `Witaj z powrotem, ${currentUser.username}!`);
             initAppForUser();
         } else {
-            const errData = await response.json().catch(() => ({}));
-            showAlert('error', errData.message || 'Błędny login lub hasło.');
+            if (response.status === 409) {
+                showAlert('error', 'Wystąpił konflikt sesji w bazie (błąd 409). Spróbuj najpierw wylogować poprzednią sesję, zrestartować serwer lub wyczyścić tabelę refresh_token w bazie danych.');
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                showAlert('error', errData.message || 'Błędny login lub hasło.');
+            }
         }
     } catch (error) {
         console.error('Błąd podczas logowania:', error);
