@@ -181,7 +181,6 @@ async function logout(notifyServer = true) {
     jwtToken = null;
     currentUser = null;
     localStorage.removeItem('jwtToken');
-    
     showAlert('info', 'Zostałeś pomyślnie wylogowany.');
     showAuthSection();
 }
@@ -214,47 +213,60 @@ function initAppForUser() {
         el.classList.toggle('hidden', !isAdmin);
     });
 
+    // Ukrywanie statystyk dla uchodźców/uczniów
+    document.getElementById('stats-container').classList.toggle('hidden', !isTeacherOrAdmin);
+
     // Dynamiczna generacja zakładek nawigacji
     const navTabsContainer = document.getElementById('role-nav-tabs');
-    let tabsHtml = `
-        <button class="nav-tab active" data-section="wycieczki-tab-section" onclick="switchTab('wycieczki-tab-section')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            Wycieczki
-        </button>
-        <button class="nav-tab" data-section="uczniowie-tab-section" onclick="switchTab('uczniowie-tab-section')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            Uczniowie
-        </button>
-        <button class="nav-tab" data-section="nauczyciele-tab-section" onclick="switchTab('nauczyciele-tab-section')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            Nauczyciele
-        </button>
-    `;
+    let tabsHtml = '';
 
     if (isTeacherOrAdmin) {
-        tabsHtml += `
+        tabsHtml = `
+            <button class="nav-tab active" data-section="wycieczki-tab-section" onclick="switchTab('wycieczki-tab-section')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Wycieczki
+            </button>
+            <button class="nav-tab" data-section="uczniowie-tab-section" onclick="switchTab('uczniowie-tab-section')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                Uczniowie
+            </button>
+            <button class="nav-tab" data-section="nauczyciele-tab-section" onclick="switchTab('nauczyciele-tab-section')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Nauczyciele
+            </button>
             <button class="nav-tab" data-section="opiekunowie-tab-section" onclick="switchTab('opiekunowie-tab-section')">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12a3 3 0 11-6 0 3 3 0 016 0zm3 2a9 9 0 00-9 9h18a9 9 0 00-9-9zm9-3a3 3 0 11-6 0 3 3 0 016 0zm-9 2a9 9 0 00-9 9h18a9 9 0 00-9-9z"></path></svg>
                 Opiekunowie
             </button>
         `;
-    }
 
-    if (isAdmin) {
+        if (isAdmin) {
+            tabsHtml += `
+                <button class="nav-tab" data-section="klasy-tab-section" onclick="switchTab('klasy-tab-section')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    Klasy
+                </button>
+            `;
+        }
+
         tabsHtml += `
-            <button class="nav-tab" data-section="klasy-tab-section" onclick="switchTab('klasy-tab-section')">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                Klasy
+            <button class="nav-tab" data-section="zapisy-tab-section" onclick="switchTab('zapisy-tab-section')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                Zapisy i Zgody
+            </button>
+        `;
+    } else {
+        tabsHtml = `
+            <button class="nav-tab active" data-section="wycieczki-tab-section" onclick="switchTab('wycieczki-tab-section')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Wycieczki
+            </button>
+            <button class="nav-tab" data-section="zapis-wycieczka-section" onclick="switchTab('zapis-wycieczka-section')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                Zapisz się
             </button>
         `;
     }
-
-    tabsHtml += `
-        <button class="nav-tab" data-section="zapisy-tab-section" onclick="switchTab('zapisy-tab-section')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-            Zapisy i Zgody
-        </button>
-    `;
 
     navTabsContainer.innerHTML = tabsHtml;
 
@@ -314,7 +326,8 @@ async function loadWycieczki() {
         if (res.ok) {
             state.wycieczki = await res.json();
             renderWycieczki(state.wycieczki);
-            populateSelectOptions('enroll-trip', state.wycieczki, w => `${w.nazwa} (${w.miejsce_docelowe})`);
+            populateSelectOptions('enroll-trip', state.wycieczki, w => `${w.nazwa} (${w.miejsce_docelowe || w.miejsceDocelowe})`);
+            populateSelectOptions('student-direct-enroll-trip', state.wycieczki, w => `${w.nazwa} (${w.miejsce_docelowe || w.miejsceDocelowe})`);
             populateSelectOptions('guide-trip', state.wycieczki, w => w.nazwa);
         }
     } catch (e) {
@@ -342,6 +355,11 @@ async function loadUczniowie() {
             state.uczniowie = await res.json();
             renderStudents(state.uczniowie);
             populateSelectOptions('enroll-student', state.uczniowie, u => {
+                const klasa = state.klasy.find(k => k.id === u.klasaId);
+                const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
+                return `${u.imie} ${u.nazwisko} (${klasaName})`;
+            });
+            populateSelectOptions('student-direct-enroll-uczen', state.uczniowie, u => {
                 const klasa = state.klasy.find(k => k.id === u.klasaId);
                 const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
                 return `${u.imie} ${u.nazwisko} (${klasaName})`;
@@ -435,6 +453,10 @@ function renderWycieczki(wycieczki) {
     container.innerHTML = wycieczki.map(w => {
         const statusClass = `status-${(w.status || 'PLANOWANA').toLowerCase()}`;
         const statusNamePl = w.status === 'PLANOWANA' ? 'Planowana' : (w.status === 'W_TRAKCIE' ? 'W trakcie' : 'Zakończona');
+        const miejsce = w.miejsce_docelowe || w.miejsceDocelowe || '';
+        const dataStart = w.data_rozpoczecia || w.dataRozpoczecia || '';
+        const dataEnd = w.data_zakonczenia || w.dataZakonczenia || '';
+        const koszt = w.koszt_na_osobe || w.kosztNaOsobe || 0;
         
         return `
             <div class="trip-card">
@@ -444,7 +466,7 @@ function renderWycieczki(wycieczki) {
                         <h3>${w.nazwa}</h3>
                         <div class="trip-destination">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <span>${w.miejsceDocelowe}</span>
+                            <span>${miejsce}</span>
                         </div>
                     </div>
                 </div>
@@ -452,11 +474,11 @@ function renderWycieczki(wycieczki) {
                     <div class="trip-details">
                         <div class="trip-detail-item">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span>${formatDate(w.dataRozpoczecia)}</span>
+                            <span>${formatDate(dataStart)}</span>
                         </div>
                         <div class="trip-detail-item">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M5 19l7-7 7 7"></path></svg>
-                            <span>Do: ${formatDate(w.dataZakonczenia)}</span>
+                            <span>Do: ${formatDate(dataEnd)}</span>
                         </div>
                         <div class="trip-detail-item">
                             <span class="status-badge ${statusClass}">${statusNamePl}</span>
@@ -465,7 +487,7 @@ function renderWycieczki(wycieczki) {
                     
                     <div class="trip-cost-row">
                         <div class="trip-price">
-                            ${w.kosztNaOsobe} <span>PLN / os</span>
+                            ${koszt} <span>PLN / os</span>
                         </div>
                         ${isTeacherOrAdmin ? `
                             <div class="actions-cell">
@@ -476,7 +498,11 @@ function renderWycieczki(wycieczki) {
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
-                        ` : ''}
+                        ` : `
+                            <button class="btn btn-primary btn-sm" onclick="enrollInTripFromCard(${w.id})">
+                                Zapisz się
+                            </button>
+                        `}
                     </div>
                 </div>
             </div>
@@ -1389,6 +1415,72 @@ async function downloadConsentPdf(consentId) {
     } catch (error) {
         console.error('Błąd podczas generowania pliku PDF:', error);
         showAlert('error', 'Wystąpił błąd podczas pobierania dokumentu PDF.');
+    }
+}
+
+// Funkcja obsługująca zapis na wycieczkę bezpośrednio z karty wycieczki
+function enrollInTripFromCard(tripId) {
+    switchTab('zapis-wycieczka-section');
+    const tripSelect = document.getElementById('student-direct-enroll-trip');
+    if (tripSelect) {
+        tripSelect.value = tripId;
+    }
+}
+
+// Obsługa wysłania formularza zapisu bezpośrednio przez uchodźcę/ucznia
+async function submitStudentDirectEnrollForm(event) {
+    event.preventDefault();
+    
+    const uczenId = parseInt(document.getElementById('student-direct-enroll-uczen').value);
+    const wycieczkaId = parseInt(document.getElementById('student-direct-enroll-trip').value);
+    const czyJedzie = document.getElementById('student-direct-enroll-is-going').checked;
+    const uwagi = document.getElementById('student-direct-enroll-notes').value;
+
+    const bodyData = {
+        uczenId: uczenId,
+        wycieczkaId: wycieczkaId,
+        czyJedzie: czyJedzie,
+        uwagi: uwagi || ''
+    };
+
+    try {
+        const response = await fetchWithAuth(`${API_BASE}/uczestnictwo`, {
+            method: 'POST',
+            body: JSON.stringify(bodyData)
+        });
+
+        if (response.ok) {
+            const newPart = await response.json();
+            
+            // Rejestracja zgody rodzica
+            const consentFormType = document.getElementById('student-direct-enroll-consent').value;
+            if (consentFormType && czyJedzie) {
+                const consentData = {
+                    uczestnictwoId: newPart.id,
+                    forma: consentFormType,
+                    dataPodpisania: new Date().toISOString().split('T')[0],
+                    czyDostarczona: true
+                };
+                
+                await fetchWithAuth(`${API_BASE}/zgoda_rodzica`, {
+                    method: 'POST',
+                    body: JSON.stringify(consentData)
+                });
+            }
+
+            showAlert('success', 'Zgłoszenie i zgoda rodzicielska zostały pomyślnie przesłane!');
+            
+            // Wyczyszczenie formularza i przełączenie widoku
+            document.getElementById('student-direct-enroll-form').reset();
+            switchTab('wycieczki-tab-section');
+            
+            await loadInitialData();
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showAlert('error', err.message || 'Wystąpił błąd podczas rejestracji zapisu.');
+        }
+    } catch (e) {
+        showAlert('error', 'Błąd połączenia z serwerem.');
     }
 }
 
