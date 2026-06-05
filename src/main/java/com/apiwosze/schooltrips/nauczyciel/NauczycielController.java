@@ -1,5 +1,7 @@
 package com.apiwosze.schooltrips.nauczyciel;
 
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,32 +16,38 @@ public class NauczycielController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
     public List<NauczycielModel> getAllNauczyciele() {
         return nauczycielService.getAllNauczyciele();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
     public NauczycielModel getNauczycielById(@PathVariable Long id) {
         return nauczycielService.getNauczycielById(id);
     }
 
     @PostMapping
-    public NauczycielModel createNauczyciel(@RequestBody NauczycielDto nauczycielDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public NauczycielModel createNauczyciel(@RequestBody @Valid NauczycielDto nauczycielDto) {
         return nauczycielService.createNauczyciel(nauczycielDto);
     }
 
     @DeleteMapping
-    public void deleteNauczyciel(@RequestBody NauczycielDto nauczycielDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteNauczyciel(@RequestBody @Valid NauczycielDto nauczycielDto) {
         nauczycielService.deleteNauczyciel(nauczycielDto);
     }
 
     @PutMapping
-    public NauczycielModel updatePrzedmiotAndTelefon(@RequestBody NauczycielDto nauczycielDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public NauczycielModel updatePrzedmiotAndTelefon(@RequestBody @Valid NauczycielDto nauczycielDto) {
         return nauczycielService.updatePrzedmiotAndTelefonNauczyciel(nauczycielDto);
     }
 
     @PutMapping("/{id}")
-    public NauczycielModel updateImieAndNazwisko(@PathVariable Long id, @RequestBody NauczycielDto nauczycielDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public NauczycielModel updateImieAndNazwisko(@PathVariable Long id, @RequestBody @Valid NauczycielDto nauczycielDto) {
         return nauczycielService.updateImieAndNazwiskoNauczyciela(id, nauczycielDto);
     }
 }

@@ -1,5 +1,7 @@
 package com.apiwosze.schooltrips.security;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,11 +21,16 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    public record AuthRequest(String username, String password) {}
+    public record AuthRequest(
+            @NotBlank(message = "Nazwa użytkownika nie może być pusta")
+            String username,
+            @NotBlank(message = "Hasło nie może być puste")
+            String password
+    ) {}
     public record AuthResponse(String token) {}
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody AuthRequest request) {
+    public AuthResponse login(@RequestBody @Valid AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );

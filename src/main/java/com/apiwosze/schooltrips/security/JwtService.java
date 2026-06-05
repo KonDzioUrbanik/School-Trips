@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
-    // Sekretny klucz - w produkcji powinien być pobierany ze zmiennych środowiskowych!
-    private static final String SECRET = "ToJestBardzoTajnyKluczDoGenerowaniaTokenowJWTKoregoNiktNieZna123!";
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private final Key key;
+
+    public JwtService(@Value("${jwt.secret:ToJestBardzoTajnyKluczDoGenerowaniaTokenowJWTKoregoNiktNieZna123!}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();

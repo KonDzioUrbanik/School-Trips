@@ -1,13 +1,14 @@
 package com.apiwosze.schooltrips.klasa;
 
 import io.swagger.v3.oas.annotations.Operation;
-import jdk.jfr.Description;
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/klasy") // Główny endpoint odpowiada wszystkim poniżej
+@RequestMapping("/api/klasy")
 public class KlasaController {
     private final KlasaService klasaService;
 
@@ -15,35 +16,38 @@ public class KlasaController {
         this.klasaService = klasaService;
     }
 
-
     @Operation(summary = "Dodawanie nowej klasy")
-    @PostMapping        //endpoint do tworzenia klasy
-    public KlasaModel createKlasa(@RequestBody KlasaDto klasaDto){ //Ta adnotacja mówi springowi że ma szukać w body/JSON a nie w adres URL
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public KlasaModel createKlasa(@RequestBody @Valid KlasaDto klasaDto){
        return klasaService.createKlasa(klasaDto);
     }
 
     @Operation(summary = "Usuwanie klasy")
-    @DeleteMapping      //endpoint do usuwania klasy
-    public void deleteKlasa(@RequestBody KlasaDto klasaDto){
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteKlasa(@RequestBody @Valid KlasaDto klasaDto){
         klasaService.deleteKlasa(klasaDto);
     }
 
     @Operation(summary = "Pobieranie wszystkich klas")
-    @GetMapping         //endpoint do pobrania wszystkich klas
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
     public List<KlasaModel> getAllKlasy(){
         return klasaService.getAllKlasy();
     }
 
     @Operation(summary = "Aktualizacja profilu klasy")
-    @PutMapping         //endpoint do aktualizacji profilu
-    public KlasaModel updateProfil(@RequestBody KlasaDto klasaDto) {
+    @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public KlasaModel updateProfil(@RequestBody @Valid KlasaDto klasaDto) {
         return klasaService.updateProfilKlasy(klasaDto);
     }
 
     @Operation(summary = "Aktualizacja nazwy klasy")
-    @PutMapping("/{id}")    //endpoint do aktualizacji nazwy klasy
-    public KlasaModel updateNazwa(@PathVariable Long id, @RequestBody KlasaDto klasaDto) {
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public KlasaModel updateNazwa(@PathVariable Long id, @RequestBody @Valid KlasaDto klasaDto) {
         return klasaService.updateNazwyKlasy(id, klasaDto);
     }
-
 }

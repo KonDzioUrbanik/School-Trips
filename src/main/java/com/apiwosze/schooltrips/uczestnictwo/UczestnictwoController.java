@@ -1,5 +1,7 @@
 package com.apiwosze.schooltrips.uczestnictwo;
 
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,23 +16,32 @@ public class UczestnictwoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
     public UczestnictwoModel getUczestnictwoById(@PathVariable Long id){
         return uczestnictwoService.getUczestnictwoById(id);
     }
+
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
     public List<UczestnictwoModel> getAllUczestnicy(){
         return uczestnictwoService.getAllUczestnicy();
     }
+
     @PostMapping
-    public UczestnictwoModel createUczestnictwo(@RequestBody UczestnictwoDto uczestnictwoDto){
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
+    public UczestnictwoModel createUczestnictwo(@RequestBody @Valid UczestnictwoDto uczestnictwoDto){
         return uczestnictwoService.createUczestnictwo(uczestnictwoDto);
     }
+
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public void deleteUczestnictwo(@PathVariable Long id){
         uczestnictwoService.deleteUczestnictwo(id);
     }
+
     @PutMapping("/{id}")
-    public UczestnictwoModel updateUczestnictwo(@PathVariable Long id, @RequestBody UczestnictwoDto uczestnictwoDto){
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
+    public UczestnictwoModel updateUczestnictwo(@PathVariable Long id, @RequestBody @Valid UczestnictwoDto uczestnictwoDto){
         return uczestnictwoService.updateUczestnictwo(id, uczestnictwoDto);
     }
 }
