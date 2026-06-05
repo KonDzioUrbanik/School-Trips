@@ -1,24 +1,28 @@
-package com.apiwosze.schooltrips.nauczyciel;
+package com.apiwosze.schooltrips.nauczyciel; // Definicja pakietu dla modułu Nauczycieli
 
-import com.apiwosze.schooltrips.opiekun_wycieczki.OpiekunWycieczkiModel;
-import com.fasterxml.jackson.annotation.JsonIgnore; // <--- Import
-import jakarta.persistence.*;
-import lombok.Data;
-import java.util.List;
+import com.apiwosze.schooltrips.opiekun_wycieczki.OpiekunWycieczkiModel; // Import encji łączącej nauczyciela z rolą opiekuna wycieczki
+import com.fasterxml.jackson.annotation.JsonIgnore; // Import adnotacji zapobiegającej pętli serializacji JSON
+import jakarta.persistence.*; // Import adnotacji mapowania JPA
+import lombok.Data; // Import Lombok @Data
+import java.util.List; // Import listy Javy
 
-@Data
-@Entity
-@Table(name = "nauczyciel")
+@Data // Lombok automatycznie generuje gettery, settery, toString, equals i hashCode
+@Entity // Oznacza klasę jako encję powiązaną z tabelą bazy danych
+@Table(name = "nauczyciel") // Wskazanie nazwy tabeli w bazie danych
 public class NauczycielModel {
-    @Id @GeneratedValue
-    @Column(name = "id_nauczyciela")
-    private Long id;
-    private String imie;
-    private String nazwisko;
-    private String przedmiot;
-    private String telefon_kontaktowy;
+    
+    @Id // Oznaczenie klucza głównego
+    @GeneratedValue // Automatyczne generowanie wartości klucza głównego
+    @Column(name = "id_nauczyciela") // Mapowanie pola id na kolumnę "id_nauczyciela"
+    private Long id; // Identyfikator nauczyciela
 
-    @OneToMany(mappedBy = "nauczyciel")
-    @JsonIgnore // <--- DODAJ TO
-    private List<OpiekunWycieczkiModel> opiekunowie;
+    private String imie; // Pole imię nauczyciela
+    private String nazwisko; // Pole nazwisko nauczyciela
+    private String przedmiot; // Pole nauczany przedmiot
+    private String telefon_kontaktowy; // Pole numer telefonu nauczyciela
+
+    // Relacja jeden-do-wielu: jeden nauczyciel może pełnić rolę opiekuna na wielu wycieczkach
+    @OneToMany(mappedBy = "nauczyciel") // Pole "nauczyciel" w klasie OpiekunWycieczkiModel jest właścicielem tej relacji
+    @JsonIgnore // Zabezpieczenie przed nieskończonym zagnieżdżeniem JSON-a
+    private List<OpiekunWycieczkiModel> opiekunowie; // Lista wycieczek, na których ten nauczyciel jest opiekunem
 }

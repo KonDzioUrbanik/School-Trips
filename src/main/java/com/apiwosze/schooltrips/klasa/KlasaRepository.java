@@ -1,22 +1,18 @@
-package com.apiwosze.schooltrips.klasa;
+package com.apiwosze.schooltrips.klasa; // Definicja pakietu dla modułu Klasy
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository; // Import interfejsu bazowego JPA
+import org.springframework.stereotype.Repository; // Import adnotacji oznaczającej repozytorium
+import java.util.Optional; // Import kontenera Optional
 
-import java.util.Optional;
-
-@Repository
+@Repository // Oznaczenie interfejsu jako komponentu dostępu do danych (Repository Bean)
 public interface KlasaRepository extends JpaRepository<KlasaModel, Long> {
-    //Nasza metoda szukania po nazwie klasy (spring jest na tyle "mądry", że sam se ogarnie SQL)
-    boolean existsByNazwa(String name);      //Nasza metoda sprawdzania po nazwie
-    void deleteByNazwa(String nazwa);        //Nasza metoda usuwania po
-    Optional<KlasaModel> findByNazwa(String nazwa); //Szukanie po nazwie z zwracaniem
+    
+    // Sprawdza czy w bazie danych istnieje już klasa o podanej nazwie (zwraca true/false)
+    boolean existsByNazwa(String name);
+
+    // Usuwa klasę z bazy danych na podstawie jej nazwy
+    void deleteByNazwa(String nazwa);
+
+    // Wyszukuje klasę w bazie na podstawie jej nazwy i zwraca ją opakowaną w Optional
+    Optional<KlasaModel> findByNazwa(String nazwa);
 }
-
-
-//Ogólnie to używane jest JpaRepository dlatego że ma już troche gotowych metod, których nie trzeba pisać
-//Czas to pieniądz wiec mamy przy każdym interface repo gotowe metody m.in
-//save() - zapisz / zaaktualizuj
-//findAll() - pobierz wszystko
-//deleteById() - usuń po id
-//ułatwienia w życiu :D
