@@ -101,8 +101,7 @@
         <!-- Aspektowe logowanie żądań i operacji -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-            <version>3.3.0</version>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
         <!-- Generowanie profesjonalnych dokumentów PDF ze zgodami -->
         <dependency>
