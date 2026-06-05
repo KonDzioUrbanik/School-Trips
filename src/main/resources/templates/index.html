@@ -4,174 +4,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="System rejestracji na wycieczki szkolne">
-    <title>Wycieczki Szkolne - Rejestracja</title>
+    <meta name="description" content="System zarządzania wycieczkami szkolnymi - panel rejestracji i autoryzacji">
+    <title>System Wycieczek Szkolnych</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
 
-    <section class="hero">
-        <div class="container">
-            <h1>Wycieczki Szkolne</h1>
-            <p>System zarządzania rejestracją uczniów na wycieczki</p>
+    <!-- Alert Container -->
+    <div id="alert-container" class="alert-container"></div>
+
+    <!-- Header / Nav bar (Zalogowany / Niezalogowany) -->
+    <header>
+        <div class="container nav-wrapper">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </div>
+                <span>SchoolTrips</span>
+            </div>
+            
+            <div id="header-user-profile" class="user-profile hidden">
+                <div class="user-info">
+                    <div id="header-username" class="user-name">Użytkownik</div>
+                    <div id="header-user-role" class="user-role">Rola</div>
+                </div>
+                <button onclick="logout()" class="btn-logout">Wyloguj</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 1. Sekcja Niezalogowany (Logowanie) -->
+    <section id="auth-section" class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Witaj w SchoolTrips</h1>
+                <p>Zaloguj się, aby uzyskać dostęp do panelu wycieczek</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-username">Nazwa użytkownika</label>
+                    <input type="text" id="login-username" class="form-control" placeholder="Wpisz login" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Hasło</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="Wpisz hasło" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block mt-3">
+                    Zaloguj się
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="quick-login-title">Szybkie demo logowania</div>
+            <div class="quick-login-grid">
+                <button class="btn-quick quick-admin" onclick="quickLogin('admin', 'admin123')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <span>Admin</span>
+                </button>
+                <button class="btn-quick quick-nauczyciel" onclick="quickLogin('nauczyciel', 'nauczyciel123')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                    </svg>
+                    <span>Nauczyciel</span>
+                </button>
+                <button class="btn-quick" onclick="quickLogin('uczen', 'uczen123')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span>Uczeń/Rodzic</span>
+                </button>
+            </div>
         </div>
     </section>
 
+    <!-- 2. Sekcja Zalogowany (Dashboard) -->
+    <section id="dashboard-section" class="dashboard-wrapper hidden">
+        <div class="container">
+            
+            <!-- Dynamic Stats Bar (Ukryta lub dopasowana dynamicznie w JS) -->
+            <div id="stats-container" class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Wycieczki</h4>
+                        <div id="stat-trips-count" class="stat-number">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon pink">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Uczniowie</h4>
+                        <div id="stat-students-count" class="stat-number">0</div>
+                    </div>
+                </div>
 
-    <div class="container">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Dostarczone Zgody</h4>
+                        <div id="stat-consents-count" class="stat-number">0</div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="nav-tabs">
-            <button class="nav-tab active" data-section="wycieczki-section">
-                Dostępne Wycieczki
-            </button>
-            <button class="nav-tab" data-section="rejestracja-ucznia-section">
-                Rejestracja Ucznia
-            </button>
-            <button class="nav-tab" data-section="zapis-na-wycieczke-section">
-                Zapis na Wycieczkę
-            </button>
+            <!-- Navigation Tabs -->
+            <div id="role-nav-tabs" class="nav-tabs">
+                <!-- Generowane dynamicznie w JS na podstawie roli -->
+            </div>
+
+            <!-- SECJA: WYCIECZKI -->
+            <div id="wycieczki-tab-section" class="section active">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Katalog Wycieczek</h2>
+                        <button id="btn-add-trip" class="btn btn-primary btn-sm role-teacher-admin hidden" onclick="openTripModal()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Utwórz Wycieczkę
+                        </button>
+                    </div>
+
+                    <div class="filter-bar">
+                        <div class="filters" id="trip-filters">
+                            <button class="filter-btn active" data-filter="wszystkie" onclick="filterWycieczki('wszystkie')">Wszystkie</button>
+                            <button class="filter-btn" data-filter="PLANOWANA" onclick="filterWycieczki('PLANOWANA')">Planowane</button>
+                            <button class="filter-btn" data-filter="W_TRAKCIE" onclick="filterWycieczki('W_TRAKCIE')">W trakcie</button>
+                            <button class="filter-btn" data-filter="ZAKONCZONA" onclick="filterWycieczki('ZAKONCZONA')">Zakończone</button>
+                        </div>
+                    </div>
+
+                    <div id="trips-grid-container" class="trips-grid">
+                        <div class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3>Ładowanie wycieczek...</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA: UCZNIOWIE -->
+            <div id="uczniowie-tab-section" class="section">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Zarejestrowani Uczniowie</h2>
+                        <button id="btn-add-student" class="btn btn-primary btn-sm role-teacher-admin hidden" onclick="openStudentModal()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            Zarejestruj Ucznia
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Imię i Nazwisko</th>
+                                    <th>Klasa</th>
+                                    <th>Data urodzenia</th>
+                                    <th class="role-teacher-admin hidden">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-body">
+                                <tr>
+                                    <td colspan="4" class="text-center">Pobieranie listy uczniów...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA: KLASY (Tylko Admin) -->
+            <div id="klasy-tab-section" class="section">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Zarządzanie Klasami</h2>
+                        <button class="btn btn-primary btn-sm" onclick="openClassModal()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Dodaj Klasę
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID Klasy</th>
+                                    <th>Nazwa Klasy</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classes-table-body">
+                                <tr>
+                                    <td colspan="3" class="text-center">Pobieranie listy klas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA: NAUCZYCIELE -->
+            <div id="nauczyciele-tab-section" class="section">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Karda Nauczycielska</h2>
+                        <button id="btn-add-teacher" class="btn btn-primary btn-sm role-admin hidden" onclick="openTeacherModal()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            Dodaj Nauczyciela
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Imię i Nazwisko</th>
+                                    <th>Przedmiot</th>
+                                    <th>Telefon Kontaktowy</th>
+                                    <th class="role-admin hidden">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teachers-table-body">
+                                <tr>
+                                    <td colspan="4" class="text-center">Pobieranie listy nauczycieli...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA: OPIEKUNOWIE WYCIECZEK -->
+            <div id="opiekunowie-tab-section" class="section">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Opiekunowie Wycieczek</h2>
+                        <button id="btn-add-guide" class="btn btn-primary btn-sm role-teacher-admin hidden" onclick="openGuideModal()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Przypisz Opiekuna
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Wycieczka</th>
+                                    <th>Opiekun (Nauczyciel)</th>
+                                    <th>Rola w Wycieczce</th>
+                                    <th class="role-teacher-admin hidden">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guides-table-body">
+                                <tr>
+                                    <td colspan="4" class="text-center">Pobieranie opiekunów...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA: ZAPISY I ZGODY -->
+            <div id="zapisy-tab-section" class="section">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Zgłoszenia i Zgody Rodziców</h2>
+                        <button class="btn btn-primary btn-sm" onclick="openEnrollModal()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            Zapisz na Wycieczkę
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Uczeń</th>
+                                    <th>Wycieczka</th>
+                                    <th>Czy jedzie?</th>
+                                    <th>Uwagi</th>
+                                    <th>Zgoda Rodzica</th>
+                                    <th>Forma i Data</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="participations-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center">Pobieranie zgłoszeń...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
+    </section>
 
+    <!-- FOOTER -->
+    <footer style="text-align: center; padding: 40px 24px; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--glass-border); margin-top: 60px; background: rgba(9, 13, 22, 0.4);">
+        <p>&copy; 2026 System Wycieczek Szkolnych - SchoolTrips Premium Client</p>
+    </footer>
 
-        <section id="wycieczki-section" class="section active">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Dostępne Wycieczki</h2>
-                </div>
+    <!-- ================= MODALE MODULARNE ================= -->
 
-
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="wszystkie" onclick="filterWycieczki('wszystkie')">
-                        Wszystkie
-                    </button>
-                    <button class="filter-btn" data-filter="planowana" onclick="filterWycieczki('planowana')">
-                        Planowane
-                    </button>
-                    <button class="filter-btn" data-filter="potwierdzona" onclick="filterWycieczki('potwierdzona')">
-                        Potwierdzone
-                    </button>
-                    <button class="filter-btn" data-filter="anulowana" onclick="filterWycieczki('anulowana')">
-                        Anulowane
-                    </button>
-                </div>
-
-
-                <div id="trips-container" class="trips-grid">
-
-                    <div class="empty-state">
-                        <h3>Ładowanie wycieczek...</h3>
-                    </div>
-                </div>
+    <!-- MODAL: WYCIECZKA (DODAJ/EDYTUJ) -->
+    <div id="trip-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="trip-modal-title">Dodaj Nową Wycieczkę</h3>
+                <button onclick="closeModal('trip-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-        </section>
-
-
-        <section id="rejestracja-ucznia-section" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Rejestracja Nowego Ucznia</h2>
+            <form id="trip-form" onsubmit="submitTripForm(event)">
+                <input type="hidden" id="trip-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="trip-name">Nazwa wycieczki *</label>
+                        <input type="text" id="trip-name" class="form-control" placeholder="np. Wycieczka w Tatry" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trip-destination">Miejsce docelowe *</label>
+                        <input type="text" id="trip-destination" class="form-control" placeholder="np. Zakopane" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trip-start-date">Data rozpoczęcia *</label>
+                        <input type="date" id="trip-start-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trip-end-date">Data zakończenia *</label>
+                        <input type="date" id="trip-end-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trip-cost">Koszt na osobę (PLN) *</label>
+                        <input type="number" step="0.01" min="0" id="trip-cost" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="trip-status">Status *</label>
+                        <select id="trip-status" class="form-control" required>
+                            <option value="PLANOWANA">Planowana</option>
+                            <option value="W_TRAKCIE">W trakcie</option>
+                            <option value="ZAKONCZONA">Zakończona</option>
+                        </select>
+                    </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('trip-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz Wycieczkę</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                <form id="student-form" onsubmit="registerStudent(event)">
+    <!-- MODAL: UCZEŃ (DODAJ/EDYTUJ) -->
+    <div id="student-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="student-modal-title">Zarejestruj Nowego Ucznia</h3>
+                <button onclick="closeModal('student-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="student-form" onsubmit="submitStudentForm(event)">
+                <input type="hidden" id="student-id">
+                <div class="modal-body">
                     <div class="form-group">
-                        <label for="uczen-imie">Imię *</label>
-                        <input type="text" id="uczen-imie" class="form-control" required
-                            placeholder="Podaj imię ucznia">
+                        <label for="student-name">Imię *</label>
+                        <input type="text" id="student-name" class="form-control" placeholder="Wpisz imię" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="uczen-nazwisko">Nazwisko *</label>
-                        <input type="text" id="uczen-nazwisko" class="form-control" required
-                            placeholder="Podaj nazwisko ucznia">
+                        <label for="student-surname">Nazwisko *</label>
+                        <input type="text" id="student-surname" class="form-control" placeholder="Wpisz nazwisko" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="uczen-data-urodzenia">Data urodzenia *</label>
-                        <input type="date" id="uczen-data-urodzenia" class="form-control" required>
+                        <label for="student-birthdate">Data urodzenia *</label>
+                        <input type="date" id="student-birthdate" class="form-control" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="uczen-klasa">Klasa *</label>
-                        <select id="uczen-klasa" class="form-control" required>
+                        <label for="student-class">Klasa *</label>
+                        <select id="student-class" class="form-control" required>
                             <option value="">Wybierz klasę</option>
-
+                            <!-- Dynamic options -->
                         </select>
                     </div>
-
-                    <button type="submit" class="btn btn-primary btn-block">
-                        Zarejestruj Ucznia
-                    </button>
-                </form>
-            </div>
-        </section>
-
-
-        <section id="zapis-na-wycieczke-section" class="section">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Zapisz Ucznia na Wycieczkę</h2>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('student-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz Ucznia</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                <form id="trip-registration-form" onsubmit="registerForTrip(event)">
+    <!-- MODAL: KLASA (DODAJ/EDYTUJ) -->
+    <div id="class-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="class-modal-title">Dodaj Nową Klasę</h3>
+                <button onclick="closeModal('class-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="class-form" onsubmit="submitClassForm(event)">
+                <input type="hidden" id="class-id">
+                <div class="modal-body">
                     <div class="form-group">
-                        <label for="uczestnictwo-uczen">Uczeń *</label>
-                        <select id="uczestnictwo-uczen" class="form-control" required>
-                            <option value="">Wybierz ucznia</option>
-
-                        </select>
+                        <label for="class-name">Nazwa klasy (np. 1A, 2B) *</label>
+                        <input type="text" id="class-name" class="form-control" placeholder="Wpisz nazwę klasy" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="uczestnictwo-wycieczka">Wycieczka *</label>
-                        <select id="uczestnictwo-wycieczka" class="form-control" required>
+                        <label for="class-profile">Profil klasy (np. matematyczny, ogólny) *</label>
+                        <input type="text" id="class-profile" class="form-control" placeholder="Wpisz profil klasy" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('class-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Dodaj Klasę</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NAUCZYCIEL (DODAJ/EDYTUJ) -->
+    <div id="teacher-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="teacher-modal-title">Dodaj Nowego Nauczyciela</h3>
+                <button onclick="closeModal('teacher-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="teacher-form" onsubmit="submitTeacherForm(event)">
+                <input type="hidden" id="teacher-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="teacher-name">Imię *</label>
+                        <input type="text" id="teacher-name" class="form-control" placeholder="Wpisz imię" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="teacher-surname">Nazwisko *</label>
+                        <input type="text" id="teacher-surname" class="form-control" placeholder="Wpisz nazwisko" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="teacher-subject">Przedmiot *</label>
+                        <input type="text" id="teacher-subject" class="form-control" placeholder="np. Matematyka" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="teacher-phone">Telefon kontaktowy *</label>
+                        <input type="text" id="teacher-phone" class="form-control" placeholder="np. +48 123 456 789 lub 123456789" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('teacher-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz Nauczyciela</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: OPIEKUN (DODAJ/EDYTUJ) -->
+    <div id="guide-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="guide-modal-title">Przypisz Opiekuna do Wycieczki</h3>
+                <button onclick="closeModal('guide-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="guide-form" onsubmit="submitGuideForm(event)">
+                <input type="hidden" id="guide-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="guide-trip">Wycieczka *</label>
+                        <select id="guide-trip" class="form-control" required>
                             <option value="">Wybierz wycieczkę</option>
-
+                            <!-- dynamic -->
                         </select>
                     </div>
-
                     <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="uczestnictwo-czy-jedzie" checked style="margin-right: 8px;">
+                        <label for="guide-teacher">Nauczyciel (Opiekun) *</label>
+                        <select id="guide-teacher" class="form-control" required>
+                            <option value="">Wybierz nauczyciela</option>
+                            <!-- dynamic -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="guide-role">Rola *</label>
+                        <select id="guide-role" class="form-control" required>
+                            <option value="DOWODZĄCY">Dowodzący</option>
+                            <option value="POMOCNIK">Pomocnik</option>
+                            <option value="WSPOMAGAJĄCY">Wspomagający</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('guide-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz Przypisanie</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ZAPIS NA WYCIECZKĘ (DODAJ / ZGŁOSZENIE) -->
+    <div id="enroll-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Zapisz Ucznia na Wycieczkę</h3>
+                <button onclick="closeModal('enroll-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="enroll-form" onsubmit="submitEnrollForm(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="enroll-student">Uczeń *</label>
+                        <select id="enroll-student" class="form-control" required>
+                            <option value="">Wybierz ucznia</option>
+                            <!-- dynamic -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="enroll-trip">Wycieczka *</label>
+                        <select id="enroll-trip" class="form-control" required>
+                            <option value="">Wybierz wycieczkę</option>
+                            <!-- dynamic -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="enroll-is-going" checked>
                             Uczeń jedzie na wycieczkę
                         </label>
                     </div>
-
                     <div class="form-group">
-                        <label for="uczestnictwo-uwagi">Uwagi</label>
-                        <textarea id="uczestnictwo-uwagi" class="form-control"
-                            placeholder="Dodatkowe uwagi dotyczące uczestnictwa (opcjonalne)"></textarea>
+                        <label for="enroll-notes">Uwagi</label>
+                        <textarea id="enroll-notes" class="form-control" placeholder="Dodatkowe uwagi dotyczące uczestnictwa (opcjonalne)"></textarea>
                     </div>
 
-                    <div class="card-header mt-4">
-                        <h3 style="font-size: 1.25rem;">Zgoda Rodzica</h3>
+                    <!-- Zgoda Rodzica Opcjonalna (wsparcie starego zachowania) -->
+                    <div style="border-top: 1px solid var(--glass-border); padding-top: 16px; margin-top: 16px;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 12px; color: var(--text-secondary);">Zgoda Rodzica (Opcjonalna)</h4>
                     </div>
-
                     <div class="form-group">
-                        <label for="zgoda-forma">Forma zgody</label>
-                        <select id="zgoda-forma" class="form-control">
-                            <option value="">Wybierz formę zgody</option>
-                            <option value="PAPIEROWA">Papierowa</option>
+                        <label for="enroll-consent-form">Forma zgody</label>
+                        <select id="enroll-consent-form" class="form-control">
+                            <option value="">Brak (dodaj później)</option>
                             <option value="ELEKTRONICZNA">Elektroniczna</option>
+                            <option value="PAPIEROWA">Papierowa</option>
                         </select>
-                        <small style="color: var(--text-secondary); display: block; margin-top: 8px;">
-                            Opcjonalne - możesz dodać później
-                        </small>
                     </div>
-
-                    <button type="submit" class="btn btn-success btn-block">
-                        Zapisz na Wycieczkę
-                    </button>
-                </form>
-            </div>
-        </section>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('enroll-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz na Wycieczkę</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-
-    <footer style="text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.8); margin-top: 60px;">
-        <p>&copy; 2026 System Wycieczek Szkolnych</p>
-    </footer>
-
+    <!-- MODAL: ZGODA RODZICA (OSOBNO DO ZAPISU - DODAJ/EDYTUJ) -->
+    <div id="consent-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="consent-modal-title">Zarządzanie Zgodą Rodzica</h3>
+                <button onclick="closeModal('consent-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="consent-form" onsubmit="submitConsentForm(event)">
+                <input type="hidden" id="consent-id">
+                <input type="hidden" id="consent-participation-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="consent-info-student">Uczeń i Wycieczka</label>
+                        <input type="text" id="consent-info-student" class="form-control" readonly style="background: rgba(255, 255, 255, 0.05); border-style: dashed;">
+                    </div>
+                    <div class="form-group">
+                        <label for="consent-form-type">Forma Wyrażenia Zgody *</label>
+                        <select id="consent-form-type" class="form-control" required>
+                            <option value="ELEKTRONICZNA">Elektroniczna</option>
+                            <option value="PAPIEROWA">Papierowa</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="consent-date">Data podpisania *</label>
+                        <input type="date" id="consent-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="consent-delivered" checked>
+                            Zgoda dostarczona / zweryfikowana
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('consent-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz Zgodę</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="/js/app.js"></script>
 </body>
