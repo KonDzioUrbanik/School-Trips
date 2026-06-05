@@ -57,10 +57,10 @@ public class SecurityConfig {
                 )
                 // Zdefiniowanie polityki sesji jako bezstanowej (stateless) - serwer nie tworzy sesji HTTP na dysku/w pamięci
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Dodanie filtra Rate Limiting przed filtrem JWT, aby odrzucić przeciążenia przed kosztownym dekodowaniem tokenów
-                .addFilterBefore(rateLimitingFilter, JwtAuthFilter.class)
                 // Dodanie filtra JWT przed standardowym filtrem uwierzytelniania
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // Dodanie filtra Rate Limiting przed filtrem JWT, aby odrzucić przeciążenia przed kosztownym dekodowaniem tokenów
+                .addFilterBefore(rateLimitingFilter, JwtAuthFilter.class);
 
         return http.build(); // Zwrócenie skonfigurowanego łańcucha filtrów
     }
