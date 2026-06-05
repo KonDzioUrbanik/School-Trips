@@ -45,3 +45,13 @@ jobs:
             docker pull kondzioos/apiwosze:latest
             docker compose up -d --force-recreate
             docker image prune -f
+            
+            # Wait a few seconds for the app to initialize
+            echo "Waiting for container startup..."
+            sleep 15
+            
+            echo "=== Container Status ==="
+            docker compose ps
+            
+            echo "=== Container Logs ==="
+            docker compose logs --tail=100
