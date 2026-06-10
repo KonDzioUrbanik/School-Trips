@@ -27,11 +27,11 @@ public class RateLimitingFilter implements Filter {
     // Cache przechowujący wiadra dla adresów IP dla pozostałych zapytań do API (DDoS protection)
     private final Map<String, Bucket> apiBuckets = new ConcurrentHashMap<>();
 
-    // Definiowanie limitów dla logowania: maksymalnie 5 prób na minutę, uzupełniane co minutę
+    // Definiowanie limitów dla logowania: maksymalnie 30 prób na minutę, uzupełniane co minutę
     private Bucket createLoginBucket() {
         return Bucket.builder()
-                // Limit: pojemność 5 tokenów, uzupełniane w ilości 5 tokenów co 1 minutę
-                .addLimit(Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1))))
+                // Limit: pojemność 30 tokenów, uzupełniane w ilości 30 tokenów co 1 minutę
+                .addLimit(Bandwidth.classic(30, Refill.intervally(30, Duration.ofMinutes(1))))
                 .build();
     }
 
