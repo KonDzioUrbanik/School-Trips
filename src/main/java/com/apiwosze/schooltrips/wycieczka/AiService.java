@@ -170,6 +170,43 @@ public class AiService {
         }
     }
 
+    private String generateMockPlan(String nazwa, String miejsceDocelowe, LocalDate start, LocalDate end, long dni) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("# 🎒 Plan Wycieczki: %s (%s)\n\n", nazwa, miejsceDocelowe));
+        sb.append(String.format("**Czas trwania:** %s do %s (%d dni)\n\n", start, end, dni));
+        sb.append("> ⚠️ *Uwaga: To jest automatyczny plan demonstracyjny (brak skonfigurowanego klucza GEMINI_API_KEY lub błąd połączenia).* \n\n");
+
+        for (int i = 1; i <= dni; i++) {
+            sb.append(String.format("### 📅 Dzień %d\n", i));
+            if (i == 1) {
+                sb.append("- **08:00** – Zbiórka uczestników przed budynkiem szkoły i załadunek bagaży.\n");
+                sb.append("- **08:30** – Odjazd autokaru w kierunku celu podróży.\n");
+                sb.append(String.format("- **12:30** – Przyjazd do **%s**, zakwaterowanie w ośrodku wypoczynkowym.\n", miejsceDocelowe));
+                sb.append("- **13:30** – Wspólny obiad.\n");
+                sb.append("- **15:00** – Spacer zapoznawczy po okolicy z przewodnikiem i omówienie zasad bezpieczeństwa.\n");
+                sb.append("- **18:30** – Kolacja.\n");
+                sb.append("- **20:00** – Wieczór integracyjny (podział na grupy, gry i konkursy).\n");
+            } else if (i == dni) {
+                sb.append("- **08:30** – Śniadanie.\n");
+                sb.append("- **10:00** – Wykwaterowanie z pokoi i pakowanie bagaży.\n");
+                sb.append("- **11:00** – Zakup pamiątek i ostatni spacer rekreacyjny po okolicy.\n");
+                sb.append("- **13:00** – Obiad pożegnalny.\n");
+                sb.append("- **14:00** – Wyjazd w drogę powrotną.\n");
+                sb.append("- **18:00** – Planowany powrót pod szkołę i odbiór uczniów przez rodziców.\n");
+            } else {
+                sb.append("- **08:30** – Śniadanie.\n");
+                sb.append("- **09:30** – Wyjście na całodniowe zwiedzanie najciekawszych atrakcji turystycznych i zabytków.\n");
+                sb.append("- **13:30** – Lunch w formie suchego prowiantu w plenerze.\n");
+                sb.append("- **14:30** – Warsztaty edukacyjne / zajęcia tematyczne na miejscu.\n");
+                sb.append("- **16:30** – Powrót do ośrodka, czas wolny na odpoczynek i gry sportowe.\n");
+                sb.append("- **18:30** – Kolacja.\n");
+                sb.append("- **19:30** – Wspólne ognisko z pieczeniem kiełbasek i śpiewaniem piosenek.\n");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
     // Klasy pomocnicze do poprawnej struktury JSON dla Groq API
     public static class GroqRequest {
         public String model;
