@@ -261,9 +261,9 @@ function initAppForUser() {
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 Wycieczki
             </button>
-            <button class="nav-tab" data-section="zapis-wycieczka-section" onclick="switchTab('zapis-wycieczka-section')">
+            <button class="nav-tab" data-section="moje-wycieczki-section" onclick="switchTab('moje-wycieczki-section')">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                Zapisz się
+                Moje wycieczki
             </button>
         `;
     }
@@ -275,6 +275,22 @@ function initAppForUser() {
 
     // Załadowanie pierwszych danych
     loadInitialData();
+
+    if (currentUser.role === 'ROLE_UCZEN_RODZIC') {
+        fetchWithAuth('/api/uczen/me')
+            .then(res => {
+                if (res.ok) return res.json();
+            })
+            .then(studentData => {
+                if (studentData) {
+                    currentUser.studentId = studentData.id;
+                    currentUser.studentName = `${studentData.imie} ${studentData.nazwisko}`;
+                    currentUser.klasaId = studentData.klasaId;
+                    renderMyTrips();
+                }
+            })
+            .catch(err => console.error('Błąd pobierania profilu ucznia:', err));
+    }
 }
 
 // Przełączanie zakładek
@@ -287,6 +303,10 @@ function switchTab(sectionId) {
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.classList.add('active');
+    }
+
+    if (sectionId === 'moje-wycieczki-section') {
+        renderMyTrips();
     }
 }
 
@@ -305,6 +325,9 @@ async function loadInitialData() {
         
         calculateStatsAndPopulate();
         renderWycieczki(state.wycieczki);
+        if (currentUser && currentUser.role === 'ROLE_UCZEN_RODZIC') {
+            renderMyTrips();
+        }
     } catch (error) {
         console.error('Błąd podczas pobierania danych początkowych:', error);
     }
@@ -1721,11 +1744,19 @@ async function downloadTripPdf() {
 
 // Funkcja obsługująca zapis na wycieczkę bezpośrednio z karty wycieczki
 function enrollInTripFromCard(tripId) {
-    switchTab('zapis-wycieczka-section');
-    const tripSelect = document.getElementById('student-direct-enroll-trip');
-    if (tripSelect) {
-        tripSelect.value = tripId;
+    const trip = state.wycieczki.find(w => w.id === tripId);
+    if (!trip) return;
+
+    if (!currentUser || !currentUser.studentId) {
+        showAlert('error', 'Trwa ładowanie profilu ucznia. Spróbuj ponownie za chwilę.');
+        return;
     }
+
+    document.getElementById('student-direct-enroll-uczen').value = currentUser.studentId;
+    document.getElementById('student-direct-enroll-trip').value = tripId;
+    document.getElementById('student-direct-enroll-trip-name').value = trip.nazwa;
+
+    openModal('student-enroll-modal');
 }
 
 // Obsługa wysłania formularza zapisu bezpośrednio przez uchodźcę/ucznia
@@ -1769,11 +1800,12 @@ async function submitStudentDirectEnrollForm(event) {
                 });
             }
 
+            closeModal('student-enroll-modal');
             showAlert('success', 'Zgłoszenie i zgoda rodzicielska zostały pomyślnie przesłane!');
             
             // Wyczyszczenie formularza i przełączenie widoku
             document.getElementById('student-direct-enroll-form').reset();
-            switchTab('wycieczki-tab-section');
+            switchTab('moje-wycieczki-section');
             
             await loadInitialData();
         } else {
@@ -1783,6 +1815,81 @@ async function submitStudentDirectEnrollForm(event) {
     } catch (e) {
         showAlert('error', 'Błąd połączenia z serwerem.');
     }
+}
+
+// Funkcja renderująca "Moje wycieczki" dla zalogowanego ucznia
+function renderMyTrips() {
+    const tbody = document.getElementById('my-trips-table-body');
+    if (!tbody) return;
+
+    if (!currentUser || !currentUser.studentId) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center">Ładowanie Twojego profilu ucznia...</td></tr>`;
+        return;
+    }
+
+    // Filtrujemy uczestnictwa dla zalogowanego ucznia
+    const myParticipations = state.uczestnictwa.filter(p => p.uczenId === currentUser.studentId);
+
+    if (myParticipations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center">Nie jesteś jeszcze zapisany na żadną wycieczkę.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = myParticipations.map(part => {
+        const wycieczka = state.wycieczki.find(w => w.id === part.wycieczkaId);
+        if (!wycieczka) return '';
+
+        const name = wycieczka.nazwa;
+        const destination = wycieczka.miejsce_docelowe || wycieczka.miejsceDocelowe || '';
+        const dataStart = wycieczka.data_rozpoczecia || wycieczka.dataRozpoczecia || '';
+        const dataEnd = wycieczka.data_zakonczenia || wycieczka.dataZakonczenia || '';
+        const termin = `${formatDate(dataStart)} - ${formatDate(dataEnd)}`;
+        const koszt = wycieczka.koszt_na_osobe || wycieczka.kosztNaOsobe || 0;
+
+        const isGoingText = part.czyJedzie 
+            ? '<span class="status-badge status-zakonczona" style="font-size:0.75rem;">Jedzie</span>' 
+            : '<span class="status-badge status-planowana" style="font-size:0.75rem;">Nie jedzie</span>';
+
+        const consent = state.zgody.find(z => z.uczestnictwoId === part.id);
+        let consentBadge = '<span class="status-badge status-planowana" style="font-size:0.7rem;">Brak Zgody</span>';
+        let consentInfo = '-';
+        let pdfAction = '-';
+
+        if (consent) {
+            const dateStr = formatDate(consent.dataPodpisania);
+            const formaText = consent.forma === 'ELEKTRONICZNA' ? 'Elektr.' : 'Papier.';
+            
+            if (consent.czyDostarczona) {
+                consentBadge = '<span class="status-badge status-zakonczona" style="font-size:0.7rem;">Dostarczona</span>';
+                consentInfo = `${formaText} (${dateStr})`;
+                pdfAction = `
+                    <button class="btn btn-success btn-sm btn-icon" onclick="downloadConsentPdf(${consent.id})" title="Pobierz PDF Zgody">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </button>
+                `;
+            } else {
+                consentBadge = '<span class="status-badge status-planowana" style="font-size:0.7rem;">Niedostarczona</span>';
+                consentInfo = `${formaText} (Oczekuje)`;
+            }
+        }
+
+        return `
+            <tr>
+                <td style="font-weight:600; color:var(--primary);">${name}</td>
+                <td>${destination}</td>
+                <td style="font-size:0.9rem;">${termin}</td>
+                <td style="font-weight:500;">${koszt} PLN</td>
+                <td>${isGoingText}</td>
+                <td>${consentBadge}</td>
+                <td style="font-size:0.85rem;">${consentInfo}</td>
+                <td>
+                    <div class="actions-cell" style="justify-content: center;">
+                        ${pdfAction}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // ================= POMOCNICZE UTILITY =================

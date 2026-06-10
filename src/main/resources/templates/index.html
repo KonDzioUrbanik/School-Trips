@@ -334,49 +334,33 @@
                 </div>
             </div>
 
-            <!-- SEKCJA: ZAPIS NA WYCIECZKĘ (Dla Ucznia) -->
-            <div id="zapis-wycieczka-section" class="section">
-                <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <!-- SEKCJA: MOJE WYCIECZKI (Dla Ucznia) -->
+            <div id="moje-wycieczki-section" class="section">
+                <div class="card">
                     <div class="card-header-flex">
-                        <h2>Zapisz się na Wycieczkę</h2>
+                        <h2>Moje Wycieczki</h2>
                     </div>
-                    <form id="student-direct-enroll-form" onsubmit="submitStudentDirectEnrollForm(event)">
-                        <div class="form-group">
-                            <label for="student-direct-enroll-uczen">Uczeń *</label>
-                            <select id="student-direct-enroll-uczen" class="form-control" required>
-                                <option value="">Wybierz ucznia</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="student-direct-enroll-trip">Wycieczka *</label>
-                            <select id="student-direct-enroll-trip" class="form-control" required>
-                                <option value="">Wybierz wycieczkę</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-checkbox">
-                                <input type="checkbox" id="student-direct-enroll-is-going" checked>
-                                Chcę jechać na tę wycieczkę
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label for="student-direct-enroll-notes">Uwagi dla opiekunów</label>
-                            <textarea id="student-direct-enroll-notes" class="form-control" placeholder="np. uwagi zdrowotne, specjalna dieta (opcjonalne)"></textarea>
-                        </div>
-
-                        <div style="border-top: 1px solid var(--glass-border); padding-top: 16px; margin-top: 16px;">
-                            <h4 style="font-size: 0.95rem; margin-bottom: 12px; color: var(--text-secondary);">Zgoda Rodzica</h4>
-                        </div>
-                        <div class="form-group">
-                            <label for="student-direct-enroll-consent">Forma zgody</label>
-                            <select id="student-direct-enroll-consent" class="form-control" required>
-                                <option value="ELEKTRONICZNA">Elektroniczna</option>
-                                <option value="PAPIEROWA">Papierowa</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-block">Zatwierdź Zgłoszenie i Zgodę</button>
-                    </form>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Wycieczka</th>
+                                    <th>Miejsce docelowe</th>
+                                    <th>Termin</th>
+                                    <th>Koszt (PLN)</th>
+                                    <th>Status uczestnictwa</th>
+                                    <th>Zgoda Rodzica</th>
+                                    <th>Forma i Data</th>
+                                    <th>Pobierz Zgodę</th>
+                                </tr>
+                            </thead>
+                            <tbody id="my-trips-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">Ładowanie Twoich wycieczek...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -683,6 +667,53 @@
                 <div class="modal-footer">
                     <button type="button" onclick="closeModal('consent-modal')" class="btn btn-secondary">Anuluj</button>
                     <button type="submit" class="btn btn-primary">Zapisz Zgodę</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ZAPIS NA WYCIECZKĘ (DLA UCZNIA) -->
+    <div id="student-enroll-modal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Zapisz się na Wycieczkę</h3>
+                <button onclick="closeModal('student-enroll-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="student-direct-enroll-form" onsubmit="submitStudentDirectEnrollForm(event)">
+                <input type="hidden" id="student-direct-enroll-uczen">
+                <input type="hidden" id="student-direct-enroll-trip">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="student-direct-enroll-trip-name">Wycieczka</label>
+                        <input type="text" id="student-direct-enroll-trip-name" class="form-control" readonly style="background: rgba(255, 255, 255, 0.05); border-style: dashed;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="student-direct-enroll-is-going" checked>
+                            Chcę jechać na tę wycieczkę
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-direct-enroll-notes">Uwagi dla opiekunów</label>
+                        <textarea id="student-direct-enroll-notes" class="form-control" placeholder="np. uwagi zdrowotne, specjalna dieta (opcjonalne)"></textarea>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--glass-border); padding-top: 16px; margin-top: 16px;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 12px; color: var(--text-secondary);">Zgoda Rodzica</h4>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-direct-enroll-consent">Forma zgody</label>
+                        <select id="student-direct-enroll-consent" class="form-control" required>
+                            <option value="ELEKTRONICZNA">Elektroniczna</option>
+                            <option value="PAPIEROWA">Papierowa</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('student-enroll-modal')" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz się</button>
                 </div>
             </form>
         </div>
