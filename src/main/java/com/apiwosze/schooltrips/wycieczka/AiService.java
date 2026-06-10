@@ -49,7 +49,7 @@ public class AiService {
         }
 
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
 
             // Tworzenie JSON za pomocą klas pomocniczych
             GeminiRequest requestPayload = new GeminiRequest(prompt);
