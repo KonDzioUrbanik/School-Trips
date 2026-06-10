@@ -39,6 +39,7 @@ public class RefreshTokenService {
 
         // Usunięcie ewentualnego istniejącego tokenu użytkownika (wymuszamy 1 aktywny Refresh Token na usera)
         refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.flush(); // Wymuszenie zapisu usunięcia przed wstawieniem nowej wartości (zapobiega konfliktom 409)
 
         // Utworzenie nowej encji RefreshToken
         RefreshToken refreshToken = new RefreshToken();

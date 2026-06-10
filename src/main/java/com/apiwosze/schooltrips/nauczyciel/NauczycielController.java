@@ -40,7 +40,7 @@ public class NauczycielController {
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public NauczycielModel updatePrzedmiotAndTelefon(@RequestBody @Valid NauczycielDto nauczycielDto) {
         return nauczycielService.updatePrzedmiotAndTelefonNauczyciel(nauczycielDto);
     }

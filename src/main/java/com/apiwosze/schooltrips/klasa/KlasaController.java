@@ -18,14 +18,14 @@ public class KlasaController {
 
     @Operation(summary = "Dodawanie nowej klasy")
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public KlasaModel createKlasa(@RequestBody @Valid KlasaDto klasaDto){
        return klasaService.createKlasa(klasaDto);
     }
 
     @Operation(summary = "Usuwanie klasy")
     @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public void deleteKlasa(@RequestBody @Valid KlasaDto klasaDto){
         klasaService.deleteKlasa(klasaDto);
     }
@@ -39,14 +39,14 @@ public class KlasaController {
 
     @Operation(summary = "Aktualizacja profilu klasy")
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public KlasaModel updateProfil(@RequestBody @Valid KlasaDto klasaDto) {
         return klasaService.updateProfilKlasy(klasaDto);
     }
 
     @Operation(summary = "Aktualizacja nazwy klasy")
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public KlasaModel updateNazwa(@PathVariable Long id, @RequestBody @Valid KlasaDto klasaDto) {
         return klasaService.updateNazwyKlasy(id, klasaDto);
     }
