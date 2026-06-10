@@ -2,6 +2,8 @@ package com.apiwosze.schooltrips.zgoda_rodzica; // Definicja pakietu dla zgód r
 
 import com.apiwosze.schooltrips.uczen.UczenModel; // Import encji ucznia
 import com.apiwosze.schooltrips.wycieczka.WycieczkaModel; // Import encji wycieczki
+import com.apiwosze.schooltrips.opiekun_wycieczki.OpiekunWycieczkiModel; // Import encji opiekunów
+import com.apiwosze.schooltrips.uczestnictwo.UczestnictwoModel; // Import encji uczestnictwa
 import com.lowagie.text.*; // Import klas biblioteki OpenPDF do tworzenia dokumentu, akapitów i czcionek
 import com.lowagie.text.alignment.HorizontalAlignment; // Import enuma wyrównania horyzontalnego OpenPDF
 import com.lowagie.text.pdf.PdfWriter; // Import klasy generatora PDF
@@ -128,5 +130,136 @@ public class PdfService {
         }
 
         return out.toByteArray(); // Zwrócenie wygenerowanej tablicy bajtów dokumentu PDF
+    }
+
+    // Metoda generująca dokument PDF z listą uczestników i opiekunów wycieczki
+    public byte[] generateTripParticipantsPdf(WycieczkaModel wycieczka) {
+        Document document = new Document(PageSize.A4, 50, 50, 50, 50);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Konfiguracja czcionek z obsługą polskich znaków diakrytycznych (Cp1250)
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, "Cp1250", true, 16);
+            Font sectionHeaderFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, "Cp1250", true, 12);
+            Font bodyFont = FontFactory.getFont(FontFactory.HELVETICA, "Cp1250", true, 10);
+            Font boldBodyFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, "Cp1250", true, 10);
+            Font italicFont = FontFactory.getFont(FontFactory.HELVETICA, "Cp1250", true, 9, Font.ITALIC);
+
+            // Tytuł dokumentu
+            Paragraph title = new Paragraph("KARTA WYCIECZKI I LISTA UCZESTNIKOW", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            // 1. Szczegóły wycieczki
+            Paragraph detailsHeader = new Paragraph("1. INFORMACJE O WYCIECZCE", sectionHeaderFont);
+            detailsHeader.setSpacingAfter(8);
+            document.add(detailsHeader);
+
+            BigDecimal koszt = wycieczka.getKoszt_na_osobe() != null ? wycieczka.getKoszt_na_osobe() : BigDecimal.ZERO;
+            BigDecimal zaliczka = koszt.multiply(new BigDecimal("0.20"));
+
+            Paragraph tripDetails = new Paragraph();
+            tripDetails.setFont(bodyFont);
+            tripDetails.add("Nazwa wycieczki: ");
+            tripDetails.add(new Chunk(wycieczka.getNazwa() + "\n", boldBodyFont));
+            tripDetails.add("Miejsce docelowe: ");
+            tripDetails.add(new Chunk(wycieczka.getMiejsce_docelowe() + "\n", boldBodyFont));
+            tripDetails.add("Termin wycieczki: ");
+            tripDetails.add(new Chunk("od " + wycieczka.getData_rozpoczecia() + " do " + wycieczka.getData_zakonczenia() + "\n", boldBodyFont));
+            tripDetails.add("Koszt na osobe: ");
+            tripDetails.add(new Chunk(koszt + " PLN\n", boldBodyFont));
+            tripDetails.add("Wymagana zaliczka (20%): ");
+            tripDetails.add(new Chunk(zaliczka.setScale(2, java.math.RoundingMode.HALF_UP) + " PLN\n", boldBodyFont));
+            tripDetails.setSpacingAfter(15);
+            document.add(tripDetails);
+
+            // 2. Sekcja opiekunów
+            Paragraph guidesHeader = new Paragraph("2. OPIEKUNOWIE WYCIECZKI", sectionHeaderFont);
+            guidesHeader.setSpacingAfter(8);
+            document.add(guidesHeader);
+
+            var opiekunowieList = wycieczka.getOpiekunowie();
+            if (opiekunowieList == null || opiekunowieList.isEmpty()) {
+                Paragraph noGuides = new Paragraph("Brak przypisanych opiekunów.", bodyFont);
+                noGuides.setSpacingAfter(15);
+                document.add(noGuides);
+            } else {
+                Table guidesTable = new Table(3);
+                guidesTable.setWidth(100);
+                
+                Cell h1 = new Cell(new Paragraph("Imie i Nazwisko", boldBodyFont));
+                Cell h2 = new Cell(new Paragraph("Rola", boldBodyFont));
+                Cell h3 = new Cell(new Paragraph("Telefon kontaktowy", boldBodyFont));
+                guidesTable.addCell(h1);
+                guidesTable.addCell(h2);
+                guidesTable.addCell(h3);
+
+                for (var o : opiekunowieList) {
+                    var nauczyciel = o.getNauczyciel();
+                    String name = nauczyciel != null ? nauczyciel.getImie() + " " + nauczyciel.getNazwisko() : "Nieznany";
+                    String roleStr = o.getRola() != null ? o.getRola().toString() : "OPIEKUN";
+                    String tel = nauczyciel != null ? nauczyciel.getTelefon_kontaktowy() : "-";
+
+                    guidesTable.addCell(new Cell(new Paragraph(name, bodyFont)));
+                    guidesTable.addCell(new Cell(new Paragraph(roleStr, bodyFont)));
+                    guidesTable.addCell(new Cell(new Paragraph(tel, bodyFont)));
+                }
+                document.add(guidesTable);
+            }
+
+            // 3. Sekcja uczniów
+            Paragraph studentsHeader = new Paragraph("3. LISTA UCZESTNIKOW (UCZNIOWIE)", sectionHeaderFont);
+            studentsHeader.setSpacingAfter(8);
+            document.add(studentsHeader);
+
+            var uczestnicyList = wycieczka.getUczestniczenie();
+            if (uczestnicyList == null || uczestnicyList.isEmpty()) {
+                Paragraph noStudents = new Paragraph("Brak zapisanych uczestników.", bodyFont);
+                noStudents.setSpacingAfter(15);
+                document.add(noStudents);
+            } else {
+                Table studentsTable = new Table(5);
+                studentsTable.setWidth(100);
+
+                studentsTable.addCell(new Cell(new Paragraph("Lp.", boldBodyFont)));
+                studentsTable.addCell(new Cell(new Paragraph("Imie i Nazwisko", boldBodyFont)));
+                studentsTable.addCell(new Cell(new Paragraph("Klasa", boldBodyFont)));
+                studentsTable.addCell(new Cell(new Paragraph("Status", boldBodyFont)));
+                studentsTable.addCell(new Cell(new Paragraph("Uwagi / Diety", boldBodyFont)));
+
+                int lp = 1;
+                for (var u : uczestnicyList) {
+                    UczenModel uczen = u.getUczen();
+                    String name = uczen != null ? uczen.getImie() + " " + uczen.getNazwisko() : "Nieznany";
+                    String classStr = (uczen != null && uczen.getKlasa() != null) 
+                            ? uczen.getKlasa().getNazwa() + " (" + uczen.getKlasa().getProfil() + ")" 
+                            : "Brak";
+                    String statusStr = u.isCzy_jedzie() ? "Jedzie" : "Nie jedzie";
+                    String notesStr = (u.getUwagi() != null && !u.getUwagi().isBlank()) ? u.getUwagi() : "-";
+
+                    studentsTable.addCell(new Cell(new Paragraph(String.valueOf(lp++), bodyFont)));
+                    studentsTable.addCell(new Cell(new Paragraph(name, bodyFont)));
+                    studentsTable.addCell(new Cell(new Paragraph(classStr, bodyFont)));
+                    studentsTable.addCell(new Cell(new Paragraph(statusStr, bodyFont)));
+                    studentsTable.addCell(new Cell(new Paragraph(notesStr, bodyFont)));
+                }
+                document.add(studentsTable);
+            }
+
+            // Stopka
+            Paragraph footer = new Paragraph("\nDokument wygenerowany automatycznie przez system School-Trips.", italicFont);
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
+
+            document.close();
+        } catch (DocumentException e) {
+            throw new RuntimeException("Blad podczas generowania pliku PDF", e);
+        }
+
+        return out.toByteArray();
     }
 }

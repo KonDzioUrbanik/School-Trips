@@ -327,8 +327,38 @@ async function loadWycieczki() {
         if (res.ok) {
             state.wycieczki = await res.json();
             renderWycieczki(state.wycieczki);
-            populateSelectOptions('enroll-trip', state.wycieczki, w => `${w.nazwa} (${w.miejsce_docelowe || w.miejsceDocelowe})`);
-            populateSelectOptions('student-direct-enroll-trip', state.wycieczki, w => `${w.nazwa} (${w.miejsce_docelowe || w.miejsceDocelowe})`);
+            
+            // Populate teacher/admin enrollment select with closed warning if applicable
+            populateSelectOptions('enroll-trip', state.wycieczki, w => {
+                const dataStart = w.data_rozpoczecia || w.dataRozpoczecia;
+                let suffix = '';
+                if (dataStart) {
+                    const startDate = new Date(dataStart);
+                    const today = new Date();
+                    startDate.setHours(0,0,0,0);
+                    today.setHours(0,0,0,0);
+                    const diffDays = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+                    if (diffDays < 7 || w.status !== 'PLANOWANA') {
+                        suffix = ' (Zapisy zamknięte)';
+                    }
+                }
+                return `${w.nazwa} (${w.miejsce_docelowe || w.miejsceDocelowe})${suffix}`;
+            });
+
+            // Populate student enrollment select (only trips open for enrollment)
+            const openTripsForStudents = state.wycieczki.filter(w => {
+                if (w.status !== 'PLANOWANA') return false;
+                const dataStart = w.data_rozpoczecia || w.dataRozpoczecia;
+                if (!dataStart) return false;
+                const startDate = new Date(dataStart);
+                const today = new Date();
+                startDate.setHours(0,0,0,0);
+                today.setHours(0,0,0,0);
+                const diffDays = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+                return diffDays >= 7;
+            });
+            populateSelectOptions('student-direct-enroll-trip', openTripsForStudents, w => `${w.nazwa} (${w.miejsce_docelowe || w.miejsceDocelowe})`);
+            
             populateSelectOptions('guide-trip', state.wycieczki, w => w.nazwa);
         }
     } catch (e) {
@@ -507,6 +537,20 @@ function renderWycieczki(wycieczki) {
         const dataStart = w.data_rozpoczecia || w.dataRozpoczecia || '';
         const dataEnd = w.data_zakonczenia || w.dataZakonczenia || '';
         const koszt = w.koszt_na_osobe || w.kosztNaOsobe || 0;
+        const zaliczka = (koszt * 0.20).toFixed(2);
+
+        // Check if registration is closed (less than 7 days before trip start date)
+        let isClosed = false;
+        if (dataStart) {
+            const startDate = new Date(dataStart);
+            const today = new Date();
+            startDate.setHours(0,0,0,0);
+            today.setHours(0,0,0,0);
+            const diffDays = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+            if (diffDays < 7) {
+                isClosed = true;
+            }
+        }
         
         return `
             <div class="trip-card">
@@ -533,6 +577,10 @@ function renderWycieczki(wycieczki) {
                         <div class="trip-detail-item">
                             <span class="status-badge ${statusClass}">${statusNamePl}</span>
                         </div>
+                        <div class="trip-detail-item" style="color: #eab308; font-weight: 600;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: #eab308;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>Zaliczka: ${zaliczka} PLN</span>
+                        </div>
                     </div>
                     
                     <div class="trip-cost-row">
@@ -557,6 +605,8 @@ function renderWycieczki(wycieczki) {
                                 (state.uczestnictwa || []).some(p => p.wycieczkaId === w.id && p.uczenId === currentUser.studentId)
                             ) ? `
                                 <span class="status-badge status-zakonczona" style="font-size:0.75rem; padding: 6px 12px; margin: 0;">Zapisany(a) ✓</span>
+                            ` : isClosed ? `
+                                <span class="status-badge status-planowana" style="font-size:0.75rem; padding: 6px 12px; margin: 0; background: rgba(239, 68, 68, 0.15); color: #f87171;">Zapisy zamknięte</span>
                             ` : `
                                 <button class="btn btn-primary btn-sm" onclick="enrollInTripFromCard(${w.id})">
                                     Zapisz się
@@ -955,6 +1005,10 @@ async function openTripDetails(tripId) {
     const koszt = trip.koszt_na_osobe || trip.kosztNaOsobe || 0;
     document.getElementById('trip-details-cost').textContent = `${koszt} PLN`;
 
+    // Wyliczenie i wyświetlenie zaliczki 20%
+    const advance = (koszt * 0.20).toFixed(2);
+    document.getElementById('trip-details-advance').textContent = `${advance} PLN`;
+
     // Renderowanie planu wycieczki (Markdown -> HTML za pomocą marked)
     const planContentDiv = document.getElementById('trip-plan-content');
     const planText = trip.planWycieczki;
@@ -977,6 +1031,12 @@ async function openTripDetails(tripId) {
     const generateBtn = document.getElementById('btn-generate-ai-plan');
     if (generateBtn) {
         generateBtn.classList.toggle('hidden', !isTeacherOrAdmin);
+    }
+
+    // Ukrywanie / Pokazywanie przycisku pobierania PDF (tylko dla wycieczek PLANOWANA)
+    const downloadPdfBtn = document.getElementById('btn-download-pdf');
+    if (downloadPdfBtn) {
+        downloadPdfBtn.classList.toggle('hidden', !isTeacherOrAdmin || (trip.status || 'PLANOWANA') !== 'PLANOWANA');
     }
 
     // Pobranie i wyrenderowanie listy uczestników wycieczki
@@ -1629,6 +1689,33 @@ async function downloadConsentPdf(consentId) {
     } catch (error) {
         console.error('Błąd podczas generowania pliku PDF:', error);
         showAlert('error', 'Wystąpił błąd podczas pobierania dokumentu PDF.');
+    }
+}
+
+// Funkcja obsługująca pobieranie PDF z uczestnikami wycieczki
+async function downloadTripPdf() {
+    if (!selectedTripForDetailsId) return;
+    try {
+        const response = await fetchWithAuth(`${API_BASE}/wycieczka/${selectedTripForDetailsId}/pdf`);
+        
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || 'Nie udało się pobrać pliku PDF');
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `uczestnicy_wycieczki_${selectedTripForDetailsId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error('Błąd podczas pobierania pliku PDF wycieczki:', error);
+        showAlert('error', error.message || 'Wystąpił błąd podczas pobierania dokumentu PDF.');
     }
 }
 

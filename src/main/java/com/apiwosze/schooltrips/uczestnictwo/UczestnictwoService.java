@@ -27,6 +27,12 @@ public class UczestnictwoService {
                 .orElseThrow(() -> new IllegalArgumentException("Nie ma takiego ucznia!"));
         WycieczkaModel wycieczkaModel = wycieczkaRepository.findById(uczestnictwoDto.wycieczkaId())
                 .orElseThrow(() -> new IllegalArgumentException("Nie ma takiej wycieczki!"));
+        
+        // Zapisy zamykają się na tydzień (7 dni) przed planowaną wycieczką
+        if (LocalDate.now().plusDays(7).isAfter(wycieczkaModel.getData_rozpoczecia())) {
+            throw new IllegalArgumentException("Zapisy na tę wycieczkę zostały zamknięte! Rejestracja zamyka się na 7 dni przed rozpoczęciem wycieczki.");
+        }
+
         UczestnictwoModel uczestnictwoModel = new UczestnictwoModel();
         uczestnictwoModel.setUczen(uczenModel);
         uczestnictwoModel.setWycieczka(wycieczkaModel);

@@ -1,6 +1,10 @@
 package com.apiwosze.schooltrips.wycieczka;
 
+import com.apiwosze.schooltrips.zgoda_rodzica.PdfService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +15,12 @@ import java.util.List;
 public class WycieczkaController {
     private final WycieczkaService wycieczkaService;
     private final AiService aiService;
+    private final PdfService pdfService;
 
-    public WycieczkaController(WycieczkaService wycieczkaService, AiService aiService) {
+    public WycieczkaController(WycieczkaService wycieczkaService, AiService aiService, PdfService pdfService) {
         this.wycieczkaService = wycieczkaService;
         this.aiService = aiService;
+        this.pdfService = pdfService;
     }
 
     @PostMapping("/{id}/generuj-plan")
@@ -67,5 +73,19 @@ public class WycieczkaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public WycieczkaModel createWycieczka(@RequestBody @Valid WycieczkaDto wycieczkaDto){
         return wycieczkaService.createWycieczka(wycieczkaDto);
+    }
+
+    @GetMapping("/{id}/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
+    public ResponseEntity<byte[]> getWycieczkaParticipantsPdf(@PathVariable Long id) {
+        WycieczkaModel wycieczka = wycieczkaService.getWycieczkaById(id);
+        if (wycieczka.getStatus() != Status.PLANOWANA) {
+            throw new IllegalArgumentException("Generowanie listy uczestników w formacie PDF jest dostępne wyłącznie dla wycieczek o statusie PLANOWANA!");
+        }
+        byte[] pdfBytes = pdfService.generateTripParticipantsPdf(wycieczka);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=uczestnicy_wycieczki_" + id + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 }
