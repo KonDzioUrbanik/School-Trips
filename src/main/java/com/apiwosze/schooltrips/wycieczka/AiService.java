@@ -58,6 +58,7 @@ public class AiService {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
+                    .timeout(java.time.Duration.ofSeconds(15)) // Limit czasu żądania (unikamy 504 Gateway Timeout)
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
@@ -78,16 +79,48 @@ public class AiService {
             }
 
             System.err.println("Gemini API error. Status: " + response.statusCode() + ", Body: " + response.body());
+            String availableModels = fetchAvailableModels();
             return "### ⚠️ Plan wycieczki (Mock Fallback - błąd zewnętrznego API)\n\n" +
                    "*Nie udało się połączyć z API Gemini (Status " + response.statusCode() + ").*\n\n" +
                    "**Szczegóły błędu z Google API:**\n```json\n" + response.body() + "\n```\n\n" +
+                   "**Dostępne modele dla Twojego klucza API:**\n`" + availableModels + "`\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
 
         } catch (Exception e) {
             System.err.println("Wystąpił błąd podczas żądania do Gemini API: " + e.getMessage());
+            String availableModels = fetchAvailableModels();
             return "### ⚠️ Plan wycieczki (Mock Fallback - wyjątek połączenia)\n\n" +
                    "*Wystąpił problem techniczny podczas generowania planu AI: " + e.getMessage() + ". Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
+                   "**Dostępne modele dla Twojego klucza API:**\n`" + availableModels + "`\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
+        }
+    }
+
+    private String fetchAvailableModels() {
+        try {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey;
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(java.time.Duration.ofSeconds(5))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JsonNode rootNode = objectMapper.readTree(response.body());
+                JsonNode modelsNode = rootNode.path("models");
+                if (modelsNode.isArray()) {
+                    java.util.List<String> modelNames = new java.util.ArrayList<>();
+                    for (JsonNode model : modelsNode) {
+                        modelNames.add(model.path("name").asText().replace("models/", ""));
+                    }
+                    return modelNames.toString();
+                }
+                return "Brak listy modeli w odpowiedzi.";
+            } else {
+                return "Błąd " + response.statusCode() + ": " + response.body();
+            }
+        } catch (Exception e) {
+            return "Wyjątek: " + e.getMessage();
         }
     }
 
