@@ -4,6 +4,7 @@ import com.apiwosze.schooltrips.common.BaseAuditEntity; // Import klasy bazowej 
 import com.apiwosze.schooltrips.uczen.UczenModel; // Import encji ucznia
 import com.apiwosze.schooltrips.wycieczka.WycieczkaModel; // Import encji wycieczki
 import com.apiwosze.schooltrips.zgoda_rodzica.ZgodaRodzicaModel; // Import encji zgody rodzica
+import com.fasterxml.jackson.annotation.JsonIgnore; // Import adnotacji do ignorowania pola przy generowaniu JSON-a
 import jakarta.persistence.*; // Import adnotacji mapowania JPA
 import lombok.Data; // Import Lombok @Data
 
@@ -32,5 +33,6 @@ public class UczestnictwoModel extends BaseAuditEntity { // Dziedziczenie po kla
     private WycieczkaModel wycieczka; // Referencja do encji przypisanej wycieczki
 
     @OneToOne(mappedBy = "uczestnictwo") // Relacja jeden-do-jednego: jedno uczestnictwo ma dokładnie jedną powiązaną zgodę rodzica
+    @JsonIgnore
     private ZgodaRodzicaModel zgoda_rodzica; // Referencja do encji zgody rodzica
 }
