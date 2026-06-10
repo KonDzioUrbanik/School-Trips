@@ -731,6 +731,33 @@
                         Brak planu wycieczki. Kliknij przycisk powyżej, aby wygenerować plan za pomocą AI.
                     </div>
                 </div>
+
+                <!-- Sekcja uczestników wycieczki (Widoczna tylko dla nauczycieli/adminów) -->
+                <div id="trip-participants-container" class="role-teacher-admin hidden" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--glass-border);">
+                    <h4 style="font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px; color: var(--primary);">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Lista Uczestników Wycieczki
+                    </h4>
+                    <div class="table-responsive">
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Uczeń</th>
+                                    <th>Status</th>
+                                    <th>Zgoda Rodzica</th>
+                                    <th>Uwagi / Alergie</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trip-participants-tbody">
+                                <tr>
+                                    <td colspan="4" class="text-center">Brak zapisanych uczestników.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" onclick="closeModal('trip-details-modal')" class="btn btn-secondary">Zamknij</button>

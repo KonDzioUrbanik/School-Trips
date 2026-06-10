@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UczenRepository extends JpaRepository<UczenModel, Long> {
+    java.util.Optional<UczenModel> findByUserUsername(String username);
 }

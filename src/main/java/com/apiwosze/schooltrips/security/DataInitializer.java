@@ -9,11 +9,17 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UzytkownikRepository uzytkownikRepository; // Repozytorium do zapisu użytkowników w bazie
     private final PasswordEncoder passwordEncoder; // Koder haseł do bezpiecznego haszowania haseł testowych użytkowników
+    private final com.apiwosze.schooltrips.klasa.KlasaRepository klasaRepository;
+    private final com.apiwosze.schooltrips.uczen.UczenRepository uczenRepository;
 
-    // Konstruktor wstrzykujący repozytorium oraz encoder haseł z kontekstu Springa
-    public DataInitializer(UzytkownikRepository uzytkownikRepository, PasswordEncoder passwordEncoder) {
+    // Konstruktor wstrzykujący repozytoria oraz encoder haseł z kontekstu Springa
+    public DataInitializer(UzytkownikRepository uzytkownikRepository, PasswordEncoder passwordEncoder,
+                           com.apiwosze.schooltrips.klasa.KlasaRepository klasaRepository,
+                           com.apiwosze.schooltrips.uczen.UczenRepository uczenRepository) {
         this.uzytkownikRepository = uzytkownikRepository;
         this.passwordEncoder = passwordEncoder;
+        this.klasaRepository = klasaRepository;
+        this.uczenRepository = uczenRepository;
     }
 
     // Metoda run wywoływana automatycznie tuż po całkowitym załadowaniu kontekstu Spring Boot
@@ -21,6 +27,12 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         // Sprawdzamy czy tabela użytkowników w bazie jest pusta
         if (uzytkownikRepository.count() == 0) {
+
+            // Inicjalizacja domyślnej klasy
+            com.apiwosze.schooltrips.klasa.KlasaModel klasaDefault = new com.apiwosze.schooltrips.klasa.KlasaModel();
+            klasaDefault.setNazwa("1A");
+            klasaDefault.setProfil("Matematyczno-Fizyczny");
+            klasaDefault = klasaRepository.save(klasaDefault);
 
             // 1. Tworzenie użytkownika z rolą ADMIN
             Uzytkownik admin = new Uzytkownik(); // Instancjonowanie nowego użytkownika
@@ -41,7 +53,16 @@ public class DataInitializer implements CommandLineRunner {
             uczen.setUsername("uczen"); // Ustawienie loginu
             uczen.setPassword(passwordEncoder.encode("uczen123")); // Zahaszowanie hasła
             uczen.setRola(RolaUzytkownika.UCZEN_RODZIC); // Przypisanie roli UCZEN_RODZIC
-            uzytkownikRepository.save(uczen); // Zapisanie ucznia w bazie
+            uczen = uzytkownikRepository.save(uczen); // Zapisanie ucznia w bazie
+
+            // Tworzenie profilu ucznia skojarzonego z kontem "uczen"
+            com.apiwosze.schooltrips.uczen.UczenModel uczenModel = new com.apiwosze.schooltrips.uczen.UczenModel();
+            uczenModel.setImie("Jan");
+            uczenModel.setNazwisko("Kowalski");
+            uczenModel.setData_urodzenia(java.time.LocalDate.of(2010, 5, 12));
+            uczenModel.setKlasa(klasaDefault);
+            uczenModel.setUser(uczen);
+            uczenRepository.save(uczenModel);
 
             // Wypisanie komunikatu diagnostycznego na konsoli aplikacji
             System.out.println("Utworzono domyślne konta testowe.");

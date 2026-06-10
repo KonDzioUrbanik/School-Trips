@@ -304,6 +304,7 @@ async function loadInitialData() {
         ]);
         
         calculateStatsAndPopulate();
+        renderWycieczki(state.wycieczki);
     } catch (error) {
         console.error('Błąd podczas pobierania danych początkowych:', error);
     }
@@ -359,11 +360,34 @@ async function loadUczniowie() {
                 const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
                 return `${u.imie} ${u.nazwisko} (${klasaName})`;
             });
-            populateSelectOptions('student-direct-enroll-uczen', state.uczniowie, u => {
-                const klasa = state.klasy.find(k => k.id === u.klasaId);
-                const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
-                return `${u.imie} ${u.nazwisko} (${klasaName})`;
-            });
+            
+            if (currentUser && currentUser.role === 'ROLE_UCZEN_RODZIC') {
+                try {
+                    const meRes = await fetchWithAuth(`${API_BASE}/uczen/me`);
+                    if (meRes.ok) {
+                        const myProfile = await meRes.json();
+                        const selectEl = document.getElementById('student-direct-enroll-uczen');
+                        if (selectEl) {
+                            selectEl.innerHTML = `<option value="${myProfile.id}" selected>${myProfile.imie} ${myProfile.nazwisko}</option>`;
+                            const group = selectEl.closest('.form-group');
+                            if (group) group.style.display = 'none';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Błąd pobierania profilu ucznia:', err);
+                }
+            } else {
+                populateSelectOptions('student-direct-enroll-uczen', state.uczniowie, u => {
+                    const klasa = state.klasy.find(k => k.id === u.klasaId);
+                    const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
+                    return `${u.imie} ${u.nazwisko} (${klasaName})`;
+                });
+                const selectEl = document.getElementById('student-direct-enroll-uczen');
+                if (selectEl) {
+                    const group = selectEl.closest('.form-group');
+                    if (group) group.style.display = 'block';
+                }
+            }
         }
     } catch (e) {
         console.error('Błąd loadUczniowie:', e);
@@ -502,6 +526,11 @@ function renderWycieczki(wycieczki) {
                                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </div>
+                            ` : (
+                                currentUser.role === 'ROLE_UCZEN_RODZIC' && currentUser.studentId && 
+                                (state.uczestnictwa || []).some(p => p.wycieczkaId === w.id && p.uczenId === currentUser.studentId)
+                            ) ? `
+                                <span class="status-badge status-zakonczona" style="font-size:0.75rem; padding: 6px 12px; margin: 0;">Zapisany(a) ✓</span>
                             ` : `
                                 <button class="btn btn-primary btn-sm" onclick="enrollInTripFromCard(${w.id})">
                                     Zapisz się
@@ -922,6 +951,58 @@ async function openTripDetails(tripId) {
     const generateBtn = document.getElementById('btn-generate-ai-plan');
     if (generateBtn) {
         generateBtn.classList.toggle('hidden', !isTeacherOrAdmin);
+    }
+
+    // Pobranie i wyrenderowanie listy uczestników wycieczki
+    const partTbody = document.getElementById('trip-participants-tbody');
+    const partContainer = document.getElementById('trip-participants-container');
+    
+    if (partTbody && partContainer) {
+        if (isTeacherOrAdmin) {
+            partContainer.classList.remove('hidden');
+            
+            // Filtrujemy zapisy dotyczące tej konkretnej wycieczki
+            const tripParts = (state.uczestnictwa || []).filter(p => p.wycieczkaId === tripId);
+            
+            if (tripParts.length === 0) {
+                partTbody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding: 20px 0; color: var(--text-muted);">Brak zapisanych uczestników na tę wycieczkę.</td></tr>`;
+            } else {
+                partTbody.innerHTML = tripParts.map(part => {
+                    const student = (state.uczniowie || []).find(u => u.id === part.uczenId);
+                    const studentName = student ? `${student.imie} ${student.nazwisko}` : `Uczeń (ID: ${part.uczenId})`;
+                    const classId = student ? student.klasaId : null;
+                    const klasa = classId ? (state.klasy || []).find(k => k.id === classId) : null;
+                    const klasaName = klasa ? ` (${klasa.nazwa})` : '';
+                    
+                    const isGoingText = part.czyJedzie 
+                        ? '<span class="status-badge status-zakonczona" style="font-size:0.75rem;">Jedzie</span>' 
+                        : '<span class="status-badge status-planowana" style="font-size:0.75rem;">Nie jedzie</span>';
+                        
+                    const consent = (state.zgody || []).find(z => z.uczestnictwoId === part.id);
+                    let consentBadge = '<span class="status-badge status-planowana" style="font-size:0.7rem;">Brak Zgody</span>';
+                    if (consent) {
+                        if (consent.czyDostarczona) {
+                            consentBadge = `<span class="status-badge status-zakonczona" style="font-size:0.7rem;">Dostarczona (${consent.forma === 'ELEKTRONICZNA' ? 'Elektr.' : 'Papier.'})</span>`;
+                        } else {
+                            consentBadge = `<span class="status-badge status-planowana" style="font-size:0.7rem;">Niedostarczona (${consent.forma === 'ELEKTRONICZNA' ? 'Elektr.' : 'Papier.'})</span>`;
+                        }
+                    }
+                    
+                    const notes = part.uwagi ? part.uwagi : '<span class="text-muted">-</span>';
+                    
+                    return `
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">${studentName}</strong>${klasaName}</td>
+                            <td>${isGoingText}</td>
+                            <td>${consentBadge}</td>
+                            <td style="font-size: 0.9rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${part.uwagi || ''}">${notes}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        } else {
+            partContainer.classList.add('hidden');
+        }
     }
 
     openModal('trip-details-modal');

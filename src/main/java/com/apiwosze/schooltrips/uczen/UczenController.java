@@ -21,6 +21,12 @@ public class UczenController {
         return uczenService.getUczenById(id);
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('UCZEN_RODZIC')")
+    public UczenModel getMyProfile(java.security.Principal principal) {
+        return uczenService.getUczenByUsername(principal.getName());
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
     public List<UczenModel> getAllUczen(){

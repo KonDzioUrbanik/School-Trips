@@ -27,6 +27,10 @@ public class UczenModel extends BaseAuditEntity { // Dziedziczenie po klasie aud
     @JoinColumn(name = "id_klasy") // Klucz obcy wskazujący na tabelę klasa
     private KlasaModel klasa; // Referencja do encji klasy ucznia
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private com.apiwosze.schooltrips.security.Uzytkownik user; // Powiązane konto użytkownika
+
     @OneToMany(mappedBy = "uczen") // Relacja jeden-do-wielu: jeden uczeń może uczestniczyć w wielu wycieczkach
     @JsonIgnore // Zabezpieczenie przed zapętleniem przy tworzeniu JSON-a
     private List<UczestnictwoModel> uczestniczenia; // Lista wycieczek ucznia
