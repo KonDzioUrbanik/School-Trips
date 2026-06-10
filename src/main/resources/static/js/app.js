@@ -286,7 +286,13 @@ function initAppForUser() {
                     currentUser.studentId = studentData.id;
                     currentUser.studentName = `${studentData.imie} ${studentData.nazwisko}`;
                     currentUser.klasaId = studentData.klasaId;
+                    // Re-renderujemy karty wycieczek, żeby pokazać poprawne przyciski
+                    // ("Zalogowany" vs "Zapisz się") na podstawie załadowanego studentId
+                    renderWycieczki(state.wycieczki);
                     renderMyTrips();
+                } else {
+                    // Jeśli uczeń nie ma profilu — pokaż alert
+                    showAlert('error', 'Nie znaleziono profilu ucznia powiązanego z Twoim kontem. Skontaktuj się z administratorem.');
                 }
             })
             .catch(err => console.error('Błąd pobierania profilu ucznia:', err));
@@ -1134,7 +1140,12 @@ async function openTripDetails(tripId) {
             p => p.wycieczkaId === tripId && p.uczenId === currentUser.studentId
         );
         
-        if (myParticipation && myParticipation.czyJedzie) {
+        // Normalizujemy pole czyJedzie (backend używa czy_jedzie)
+        const isGoing = myParticipation && (myParticipation.czyJedzie !== undefined
+            ? myParticipation.czyJedzie
+            : myParticipation.czy_jedzie);
+        
+        if (myParticipation && isGoing) {
             paymentSection.classList.remove('hidden');
             if (myParticipation.zaliczkaOplacona) {
                 const dateStr = myParticipation.dataOplatyZaliczki
@@ -1143,13 +1154,16 @@ async function openTripDetails(tripId) {
                 paymentStatus.innerHTML = `<span style="color:#4ade80; font-weight:600;">✔ Zaliczka opłacona</span> · ${dateStr}`;
                 paymentAction.innerHTML = `<span class="status-badge status-zakonczona" style="padding: 6px 14px;">Opłacono ✔</span>`;
             } else {
-                const advanceAmt = ((koszt) * 0.20).toFixed(2);
+                const advanceAmt = (koszt * 0.20).toFixed(2);
                 paymentStatus.textContent = 'Zaliczka nie została jeszcze opłacona.';
                 paymentAction.innerHTML = `
-                    <button class="btn btn-primary btn-sm" style="background:#635bff;border:none;" onclick="openStripePaymentModal(${myParticipation.id}, '${trip.nazwa}', ${advanceAmt})">
+                    <button class="btn btn-primary btn-sm" style="background:#635bff;border:none;" onclick="openStripePaymentModal(${myParticipation.id}, '${trip.nazwa.replace(/'/g, "\\'")}', ${advanceAmt})">
                         Opłać zaliczkę (${advanceAmt} PLN) 💳
                     </button>`;
             }
+        } else if (myParticipation && !isGoing) {
+            // Uczestniczy ale nie jedzie
+            paymentSection.classList.add('hidden');
         } else {
             paymentSection.classList.add('hidden');
         }
@@ -1826,6 +1840,20 @@ async function submitStudentDirectEnrollForm(event) {
 
         if (response.ok) {
             const newPart = await response.json();
+
+            // Normalizujemy pola i dodajemy do stanu lokalnego
+            const normalized = {
+                id: newPart.id,
+                uczenId: newPart.uczenId || (newPart.uczen ? newPart.uczen.id : null) || uczenId,
+                wycieczkaId: newPart.wycieczkaId || (newPart.wycieczka ? newPart.wycieczka.id : null) || wycieczkaId,
+                czyJedzie: newPart.czyJedzie !== undefined ? newPart.czyJedzie : (newPart.czy_jedzie !== undefined ? newPart.czy_jedzie : czyJedzie),
+                uwagi: newPart.uwagi,
+                dataZapisania: newPart.dataZapisania || newPart.data_zapisania,
+                zaliczkaOplacona: false,
+                dataOplatyZaliczki: null,
+                stripePaymentIntentId: null
+            };
+            state.uczestnictwa.push(normalized);
             
             // Rejestracja zgody rodzica
             const consentFormType = document.getElementById('student-direct-enroll-consent').value;
@@ -1846,11 +1874,12 @@ async function submitStudentDirectEnrollForm(event) {
             closeModal('student-enroll-modal');
             showAlert('success', 'Zgłoszenie i zgoda rodzicielska zostały pomyślnie przesłane!');
             
-            // Wyczyszczenie formularza i przełączenie widoku
+            // Wyczyszczenie formularza
             document.getElementById('student-direct-enroll-form').reset();
-            switchTab('moje-wycieczki-section');
             
-            await loadInitialData();
+            // Odświeżamy widoki
+            renderWycieczki(state.wycieczki);
+            switchTab('moje-wycieczki-section');
         } else {
             const err = await response.json().catch(() => ({}));
             showAlert('error', err.message || 'Wystąpił błąd podczas rejestracji zapisu.');

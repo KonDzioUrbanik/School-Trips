@@ -271,7 +271,7 @@ public class PdfService {
                     String classStr = (uczen != null && uczen.getKlasa() != null)
                             ? uczen.getKlasa().getNazwa() + " (" + uczen.getKlasa().getProfil() + ")"
                             : "Brak";
-                    String statusStr = u.isCzy_jedzie() ? "Jedzie" : "Nie jedzie";
+                    String statusStr = u.isCzyJedzie() ? "Jedzie" : "Nie jedzie";
                     String notesStr = (u.getUwagi() != null && !u.getUwagi().isBlank()) ? u.getUwagi() : "-";
 
                     studentsTable.addCell(new Cell(new Paragraph(String.valueOf(lp++), bodyFont)));

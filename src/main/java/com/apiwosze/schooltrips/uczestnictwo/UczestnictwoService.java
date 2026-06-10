@@ -36,7 +36,7 @@ public class UczestnictwoService {
         UczestnictwoModel uczestnictwoModel = new UczestnictwoModel();
         uczestnictwoModel.setUczen(uczenModel);
         uczestnictwoModel.setWycieczka(wycieczkaModel);
-        uczestnictwoModel.setCzy_jedzie(uczestnictwoDto.czyJedzie());
+        uczestnictwoModel.setCzyJedzie(uczestnictwoDto.czyJedzie());
         uczestnictwoModel.setUwagi(uczestnictwoDto.uwagi());
         uczestnictwoModel.setData_zapisania(LocalDate.now());
         return uczestnictwoRepository.save(uczestnictwoModel);
@@ -47,7 +47,7 @@ public class UczestnictwoService {
     public UczestnictwoModel updateUczestnictwo(Long id, UczestnictwoDto uczestnictwoDto){
         UczestnictwoModel uczestnictwoModelEdit = uczestnictwoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nie ma takiego uczestnictwa!"));
-        uczestnictwoModelEdit.setCzy_jedzie(uczestnictwoDto.czyJedzie());
+        uczestnictwoModelEdit.setCzyJedzie(uczestnictwoDto.czyJedzie());
         uczestnictwoModelEdit.setUwagi(uczestnictwoDto.uwagi());
         return uczestnictwoRepository.save(uczestnictwoModelEdit);
     }
