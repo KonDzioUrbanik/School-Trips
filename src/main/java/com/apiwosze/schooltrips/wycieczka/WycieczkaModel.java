@@ -25,7 +25,11 @@ public class WycieczkaModel extends BaseAuditEntity { // Dziedziczenie po klasie
     private LocalDate data_rozpoczecia; // Data rozpoczęcia wycieczki
     private LocalDate data_zakonczenia; // Data zakończenia wycieczki
     private String miejsce_docelowe; // Miejsce docelowe wycieczki (np. "Warszawa")
+    @Column(name = "koszt_na_osobe") // Mapowanie na kolumnę kosztów
     private BigDecimal koszt_na_osobe; // Koszt uczestnictwa dla jednej osoby
+
+    @Column(columnDefinition = "TEXT")
+    private String planWycieczki; // Harmonogram wycieczki wygenerowany przez AI
 
     @Enumerated(EnumType.STRING) // Mapowanie enuma statusu wycieczki jako tekst w bazie
     private Status status; // Aktualny status wycieczki (np. PLANOWANA, ZATWIERDZONA)

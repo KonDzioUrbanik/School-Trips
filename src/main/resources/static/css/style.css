@@ -1056,3 +1056,85 @@ tr:hover td {
 .hidden {
     display: none !important;
 }
+
+/* Markdown Content Styling for AI Plan */
+.markdown-content {
+    line-height: 1.6;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.markdown-content h1, 
+.markdown-content h2, 
+.markdown-content h3 {
+    color: white;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+.markdown-content h1 {
+    font-size: 1.4rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 8px;
+}
+
+.markdown-content h2 {
+    font-size: 1.25rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.markdown-content ul, 
+.markdown-content ol {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    padding-left: 20px;
+}
+
+.markdown-content li {
+    margin-bottom: 6px;
+}
+
+.markdown-content strong {
+    color: white;
+    font-weight: 600;
+}
+
+.markdown-content blockquote {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px;
+    margin: 1.2rem 0;
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+}
+
+.markdown-content blockquote p {
+    margin: 0;
+    font-style: italic;
+    color: #a7f3d0;
+}
+
+/* Custom scrollbar for markdown-content */
+.markdown-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.markdown-content::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: 3px;
+}
+
+.markdown-content::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 3px;
+}
+
+.markdown-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+

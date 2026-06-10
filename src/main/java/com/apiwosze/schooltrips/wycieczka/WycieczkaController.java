@@ -10,9 +10,33 @@ import java.util.List;
 @RequestMapping("/api/wycieczka")
 public class WycieczkaController {
     private final WycieczkaService wycieczkaService;
+    private final AiService aiService;
 
-    public WycieczkaController(WycieczkaService wycieczkaService) {
+    public WycieczkaController(WycieczkaService wycieczkaService, AiService aiService) {
         this.wycieczkaService = wycieczkaService;
+        this.aiService = aiService;
+    }
+
+    @PostMapping("/{id}/generuj-plan")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
+    public WycieczkaModel generujPlan(@PathVariable Long id) {
+        WycieczkaModel wycieczka = wycieczkaService.getWycieczkaById(id);
+        String plan = aiService.generateTripPlan(
+                wycieczka.getNazwa(),
+                wycieczka.getMiejsce_docelowe(),
+                wycieczka.getData_rozpoczecia(),
+                wycieczka.getData_zakonczenia()
+        );
+        WycieczkaDto dto = new WycieczkaDto(
+                wycieczka.getNazwa(),
+                wycieczka.getData_rozpoczecia(),
+                wycieczka.getData_zakonczenia(),
+                wycieczka.getMiejsce_docelowe(),
+                wycieczka.getKoszt_na_osobe(),
+                wycieczka.getStatus(),
+                plan
+        );
+        return wycieczkaService.updateWycieczka(id, dto);
     }
 
     @GetMapping

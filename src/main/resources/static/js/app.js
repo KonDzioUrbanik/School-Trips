@@ -489,20 +489,25 @@ function renderWycieczki(wycieczki) {
                         <div class="trip-price">
                             ${koszt} <span>PLN / os</span>
                         </div>
-                        ${isTeacherOrAdmin ? `
-                            <div class="actions-cell">
-                                <button class="btn btn-secondary btn-sm btn-icon" onclick="openTripModal(${w.id})" title="Edytuj">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
-                                <button class="btn btn-danger btn-sm btn-icon" onclick="deleteTrip(${w.id})" title="Usuń">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        ` : `
-                            <button class="btn btn-primary btn-sm" onclick="enrollInTripFromCard(${w.id})">
-                                Zapisz się
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button class="btn btn-secondary btn-sm" onclick="openTripDetails(${w.id})" title="Szczegóły i Plan Wycieczki">
+                                Szczegóły 📋
                             </button>
-                        `}
+                            ${isTeacherOrAdmin ? `
+                                <div class="actions-cell">
+                                    <button class="btn btn-secondary btn-sm btn-icon" onclick="openTripModal(${w.id})" title="Edytuj">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm btn-icon" onclick="deleteTrip(${w.id})" title="Usuń">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            ` : `
+                                <button class="btn btn-primary btn-sm" onclick="enrollInTripFromCard(${w.id})">
+                                    Zapisz się
+                                </button>
+                            `}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -873,6 +878,108 @@ async function deleteTrip(id) {
         }
     } catch (e) {
         showAlert('error', 'Błąd połączenia z serwerem.');
+    }
+}
+
+// --- AI TRIP PLAN DETAILS ---
+let selectedTripForDetailsId = null;
+
+async function openTripDetails(tripId) {
+    selectedTripForDetailsId = tripId;
+    const trip = state.wycieczki.find(w => w.id === tripId);
+    if (!trip) return;
+
+    // Ustawienie danych podstawowych w modalu szczegółów
+    document.getElementById('trip-details-title').textContent = `Wycieczka: ${trip.nazwa}`;
+    document.getElementById('trip-details-destination').textContent = trip.miejsce_docelowe || trip.miejsceDocelowe || 'Brak';
+    
+    const dataStart = trip.data_rozpoczecia || trip.dataRozpoczecia || '';
+    const dataEnd = trip.data_zakonczenia || trip.dataZakonczenia || '';
+    document.getElementById('trip-details-dates').textContent = `${formatDate(dataStart)} - ${formatDate(dataEnd)}`;
+    
+    const koszt = trip.koszt_na_osobe || trip.kosztNaOsobe || 0;
+    document.getElementById('trip-details-cost').textContent = `${koszt} PLN`;
+
+    // Renderowanie planu wycieczki (Markdown -> HTML za pomocą marked)
+    const planContentDiv = document.getElementById('trip-plan-content');
+    const planText = trip.planWycieczki;
+    
+    if (planText && planText.trim()) {
+        planContentDiv.innerHTML = marked.parse(planText);
+        document.getElementById('btn-generate-ai-plan').textContent = 'Regeneruj Plan przez AI 🤖';
+    } else {
+        planContentDiv.innerHTML = `<div class="text-center text-muted" style="padding: 40px 0;">
+            <p>Brak planu wycieczki.</p>
+            ${(currentUser.role === 'ROLE_ADMIN' || currentUser.role === 'ROLE_NAUCZYCIEL') 
+                ? '<p style="font-size: 0.9rem;">Kliknij przycisk powyżej, aby wygenerować plan za pomocą AI.</p>' 
+                : '<p style="font-size: 0.9rem;">Poproś opiekuna o wygenerowanie planu wycieczki.</p>'}
+        </div>`;
+        document.getElementById('btn-generate-ai-plan').textContent = 'Generuj Plan przez AI 🤖';
+    }
+
+    // Ukrywanie / Pokazywanie przycisku generowania AI na podstawie roli
+    const isTeacherOrAdmin = currentUser.role === 'ROLE_ADMIN' || currentUser.role === 'ROLE_NAUCZYCIEL';
+    const generateBtn = document.getElementById('btn-generate-ai-plan');
+    if (generateBtn) {
+        generateBtn.classList.toggle('hidden', !isTeacherOrAdmin);
+    }
+
+    openModal('trip-details-modal');
+}
+
+async function generateAiPlan() {
+    if (!selectedTripForDetailsId) return;
+    
+    const generateBtn = document.getElementById('btn-generate-ai-plan');
+    const planContentDiv = document.getElementById('trip-plan-content');
+    
+    const originalText = generateBtn.textContent;
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="loading"></span> Generowanie...';
+    planContentDiv.innerHTML = `<div class="text-center" style="padding: 40px 0;">
+        <span class="loading" style="width: 30px; height: 30px; border-width: 3px; margin-bottom: 12px;"></span>
+        <p style="color: var(--primary); font-weight: 600;">Sztuczna inteligencja tworzy plan podróży...</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Może to potrwać kilka sekund.</p>
+    </div>`;
+
+    try {
+        const response = await fetchWithAuth(`${API_BASE}/wycieczka/${selectedTripForDetailsId}/generuj-plan`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            const updatedTrip = await response.json();
+            
+            // Zaktualizuj stan lokalny wycieczek
+            const index = state.wycieczki.findIndex(w => w.id === updatedTrip.id);
+            if (index !== -1) {
+                state.wycieczki[index] = updatedTrip;
+            }
+            
+            // Odśwież listę na widoku głównym
+            renderWycieczki(state.wycieczki);
+            
+            // Wyświetl nowy plan w modalu szczegółów
+            planContentDiv.innerHTML = marked.parse(updatedTrip.planWycieczki);
+            generateBtn.textContent = 'Regeneruj Plan przez AI 🤖';
+            showAlert('success', 'Plan wycieczki został pomyślnie wygenerowany przez AI!');
+        } else {
+            const err = await response.json().catch(() => ({}));
+            planContentDiv.innerHTML = `<div class="text-center text-danger" style="padding: 40px 0;">
+                <p>Wystąpił błąd podczas generowania planu.</p>
+                <p style="font-size: 0.85rem;">${err.message || 'Nieznany błąd serwera'}</p>
+            </div>`;
+            generateBtn.textContent = originalText;
+            showAlert('error', err.message || 'Błąd podczas generowania planu przez AI.');
+        }
+    } catch (e) {
+        planContentDiv.innerHTML = `<div class="text-center text-danger" style="padding: 40px 0;">
+            <p>Błąd połączenia z serwerem.</p>
+        </div>`;
+        generateBtn.textContent = originalText;
+        showAlert('error', 'Błąd komunikacji z serwerem.');
+    } finally {
+        generateBtn.disabled = false;
     }
 }
 

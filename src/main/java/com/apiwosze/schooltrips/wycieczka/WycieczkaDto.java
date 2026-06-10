@@ -21,6 +21,7 @@ public record WycieczkaDto(
         @DecimalMin(value = "0.0", inclusive = true, message = "Koszt na osobę nie może być ujemny")
         BigDecimal kosztNaOsobe,
         @NotNull(message = "Status wycieczki nie może być pusty")
-        Status status
+        Status status,
+        String planWycieczki
 ) {
 }

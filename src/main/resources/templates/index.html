@@ -7,6 +7,7 @@
     <meta name="description" content="System zarządzania wycieczkami szkolnymi - panel rejestracji i autoryzacji">
     <title>WycieczeX - System Wycieczek Szkolnych</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -684,6 +685,57 @@
                     <button type="submit" class="btn btn-primary">Zapisz Zgodę</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: SZCZEGÓŁY WYCIECZKI I PLAN AI -->
+    <div id="trip-details-modal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 750px;">
+            <div class="modal-header">
+                <h3 id="trip-details-title">Szczegóły Wycieczki</h3>
+                <button onclick="closeModal('trip-details-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="trip-details-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--glass-border);">
+                    <div>
+                        <strong style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Miejsce docelowe:</strong>
+                        <div id="trip-details-destination" style="font-size: 1.1rem; font-weight: 600; margin-top: 4px; color: var(--primary);">Zakopane</div>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Termin wycieczki:</strong>
+                        <div id="trip-details-dates" style="font-size: 1rem; font-weight: 500; margin-top: 4px;">01.01.2026 - 05.01.2026</div>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Koszt na osobę:</strong>
+                        <div id="trip-details-cost" style="font-size: 1.2rem; font-weight: 700; margin-top: 4px; color: var(--text-primary);">0.00 PLN</div>
+                    </div>
+                </div>
+
+                <div class="trip-plan-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h4 style="font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; margin: 0;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px; color: var(--primary);">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            Plan i Harmonogram Wycieczki (AI 🤖)
+                        </h4>
+                        <!-- Przycisk generowania widoczny tylko dla nauczycieli/adminów -->
+                        <button id="btn-generate-ai-plan" class="btn btn-success btn-sm role-teacher-admin" onclick="generateAiPlan()">
+                            Generuj Plan przez AI 🤖
+                        </button>
+                    </div>
+
+                    <!-- Div do wstrzykiwania wyrenderowanego Markdownu -->
+                    <div id="trip-plan-content" class="markdown-content" style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 24px; min-height: 200px; max-height: 450px; overflow-y: auto;">
+                        Brak planu wycieczki. Kliknij przycisk powyżej, aby wygenerować plan za pomocą AI.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('trip-details-modal')" class="btn btn-secondary">Zamknij</button>
+            </div>
         </div>
     </div>
 

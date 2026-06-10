@@ -21,6 +21,7 @@ public class WycieczkaService {
         wycieczkaModel.setMiejsce_docelowe(wycieczkaDto.miejsceDocelowe());
         wycieczkaModel.setKoszt_na_osobe(wycieczkaDto.kosztNaOsobe());
         wycieczkaModel.setStatus(wycieczkaDto.status());
+        wycieczkaModel.setPlanWycieczki(wycieczkaDto.planWycieczki());
         return wycieczkaRepository.save(wycieczkaModel);
     }
     public void deleteWycieczka(Long id){
@@ -35,6 +36,7 @@ public class WycieczkaService {
         wycieczkaModelEdit.setMiejsce_docelowe(wycieczkaDto.miejsceDocelowe());
         wycieczkaModelEdit.setKoszt_na_osobe(wycieczkaDto.kosztNaOsobe());
         wycieczkaModelEdit.setStatus(wycieczkaDto.status());
+        wycieczkaModelEdit.setPlanWycieczki(wycieczkaDto.planWycieczki());
         return wycieczkaRepository.save(wycieczkaModelEdit);
     }
     public List<WycieczkaModel> getAllWycieczki(){
