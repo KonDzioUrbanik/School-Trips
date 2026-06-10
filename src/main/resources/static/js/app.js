@@ -353,11 +353,15 @@ async function loadUczniowie() {
     try {
         const res = await fetchWithAuth(`${API_BASE}/uczen`);
         if (res.ok) {
-            state.uczniowie = await res.json();
+            const rawData = await res.json();
+            state.uczniowie = rawData.map(u => ({
+                ...u,
+                klasaId: u.klasa ? u.klasa.id : null
+            }));
             renderStudents(state.uczniowie);
             populateSelectOptions('enroll-student', state.uczniowie, u => {
                 const klasa = state.klasy.find(k => k.id === u.klasaId);
-                const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
+                const klasaName = klasa ? klasa.nazwa : (u.klasaId ? `Klasa ${u.klasaId}` : 'Brak');
                 return `${u.imie} ${u.nazwisko} (${klasaName})`;
             });
             
@@ -366,6 +370,7 @@ async function loadUczniowie() {
                     const meRes = await fetchWithAuth(`${API_BASE}/uczen/me`);
                     if (meRes.ok) {
                         const myProfile = await meRes.json();
+                        currentUser.studentId = myProfile.id;
                         const selectEl = document.getElementById('student-direct-enroll-uczen');
                         if (selectEl) {
                             selectEl.innerHTML = `<option value="${myProfile.id}" selected>${myProfile.imie} ${myProfile.nazwisko}</option>`;
@@ -379,7 +384,7 @@ async function loadUczniowie() {
             } else {
                 populateSelectOptions('student-direct-enroll-uczen', state.uczniowie, u => {
                     const klasa = state.klasy.find(k => k.id === u.klasaId);
-                    const klasaName = klasa ? klasa.nazwa : `Klasa ${u.klasaId}`;
+                    const klasaName = klasa ? klasa.nazwa : (u.klasaId ? `Klasa ${u.klasaId}` : 'Brak');
                     return `${u.imie} ${u.nazwisko} (${klasaName})`;
                 });
                 const selectEl = document.getElementById('student-direct-enroll-uczen');
