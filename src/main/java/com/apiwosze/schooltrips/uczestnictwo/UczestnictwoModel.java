@@ -49,7 +49,8 @@ public class UczestnictwoModel extends BaseAuditEntity { // Dziedziczenie po kla
         return wycieczka != null ? wycieczka.getId() : null;
     }
 
-    private boolean zaliczkaOplacona; // Czy opłacono zaliczkę 20%
+    @Column(name = "zaliczka_oplacona", nullable = false, columnDefinition = "boolean default false")
+    private boolean zaliczkaOplacona = false; // Czy opłacono zaliczkę 20%
     private java.time.LocalDateTime dataOplatyZaliczki; // Data i czas opłacenia zaliczki
     private String stripePaymentIntentId; // Identyfikator płatności Stripe (symulowany)
 
