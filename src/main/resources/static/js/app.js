@@ -416,7 +416,13 @@ async function loadOpiekunowie() {
     try {
         const res = await fetchWithAuth(`${API_BASE}/opiekun_wycieczki`);
         if (res.ok) {
-            state.opiekunowie = await res.json();
+            const rawData = await res.json();
+            state.opiekunowie = rawData.map(g => ({
+                id: g.id,
+                rola: g.rola,
+                wycieczkaId: g.wycieczkaId || (g.wycieczkaOpiekun ? g.wycieczkaOpiekun.id : null),
+                nauczycielId: g.nauczycielId || (g.nauczyciel ? g.nauczyciel.id : null)
+            }));
             renderGuides(state.opiekunowie);
         }
     } catch (e) {
