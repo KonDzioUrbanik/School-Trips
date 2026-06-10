@@ -79,7 +79,8 @@ public class AiService {
 
             System.err.println("Gemini API error. Status: " + response.statusCode() + ", Body: " + response.body());
             return "### ⚠️ Plan wycieczki (Mock Fallback - błąd zewnętrznego API)\n\n" +
-                   "*Nie udało się połączyć z API Gemini (Status " + response.statusCode() + "). Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
+                   "*Nie udało się połączyć z API Gemini (Status " + response.statusCode() + ").*\n\n" +
+                   "**Szczegóły błędu z Google API:**\n```json\n" + response.body() + "\n```\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
 
         } catch (Exception e) {
