@@ -49,7 +49,7 @@ public class AiService {
         }
 
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" + apiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
             // Tworzenie JSON za pomocą klas pomocniczych
             GeminiRequest requestPayload = new GeminiRequest(prompt);
@@ -58,7 +58,7 @@ public class AiService {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
-                    .timeout(java.time.Duration.ofSeconds(15)) // Limit czasu żądania (unikamy 504 Gateway Timeout)
+                    .timeout(java.time.Duration.ofSeconds(35)) // Limit czasu żądania 35s
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
@@ -79,19 +79,14 @@ public class AiService {
             }
 
             System.err.println("Gemini API error. Status: " + response.statusCode() + ", Body: " + response.body());
-            String availableModels = fetchAvailableModels();
             return "### ⚠️ Plan wycieczki (Mock Fallback - błąd zewnętrznego API)\n\n" +
-                   "*Nie udało się połączyć z API Gemini (Status " + response.statusCode() + ").*\n\n" +
-                   "**Szczegóły błędu z Google API:**\n```json\n" + response.body() + "\n```\n\n" +
-                   "**Dostępne modele dla Twojego klucza API:**\n`" + availableModels + "`\n\n" +
+                   "*Nie udało się połączyć z API Gemini (Status " + response.statusCode() + "). Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
 
         } catch (Exception e) {
             System.err.println("Wystąpił błąd podczas żądania do Gemini API: " + e.getMessage());
-            String availableModels = fetchAvailableModels();
             return "### ⚠️ Plan wycieczki (Mock Fallback - wyjątek połączenia)\n\n" +
                    "*Wystąpił problem techniczny podczas generowania planu AI: " + e.getMessage() + ". Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
-                   "**Dostępne modele dla Twojego klucza API:**\n`" + availableModels + "`\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
         }
     }
