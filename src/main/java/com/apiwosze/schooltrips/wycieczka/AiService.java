@@ -44,21 +44,30 @@ public class AiService {
             apiKey.equalsIgnoreCase("null") || 
             apiKey.equalsIgnoreCase("placeholder") ||
             apiKey.trim().length() < 10) {
-            System.out.println("GEMINI_API_KEY nie jest skonfigurowany lub jest nieprawidłowy. Generowanie planu próbnego (Mock Fallback).");
+            System.out.println("Klucz API nie jest skonfigurowany. Generowanie planu próbnego (Mock Fallback).");
             return generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
         }
 
-        try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
+        if (apiKey.trim().startsWith("gsk_")) {
+            System.out.println("Wykryto klucz Groq. Generowanie planu przy użyciu Groq Llama API.");
+            return generateTripPlanGroq(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni, prompt);
+        } else {
+            System.out.println("Wykryto klucz Gemini. Generowanie planu przy użyciu Google Gemini API.");
+            return generateTripPlanGemini(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni, prompt);
+        }
+    }
 
-            // Tworzenie JSON za pomocą klas pomocniczych
+    private String generateTripPlanGemini(String nazwa, String miejsceDocelowe, LocalDate dataRozpoczecia, LocalDate dataZakonczenia, long dni, String prompt) {
+        try {
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey.trim();
+
             GeminiRequest requestPayload = new GeminiRequest(prompt);
             String requestBody = objectMapper.writeValueAsString(requestPayload);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
-                    .timeout(java.time.Duration.ofSeconds(35)) // Limit czasu żądania 35s
+                    .timeout(java.time.Duration.ofSeconds(35))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
@@ -79,14 +88,56 @@ public class AiService {
             }
 
             System.err.println("Gemini API error. Status: " + response.statusCode() + ", Body: " + response.body());
-            return "### ⚠️ Plan wycieczki (Mock Fallback - błąd zewnętrznego API)\n\n" +
+            return "### ⚠️ Plan wycieczki (Mock Fallback - błąd zewnętrznego API Gemini)\n\n" +
                    "*Nie udało się połączyć z API Gemini (Status " + response.statusCode() + "). Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
+                   "**Szczegóły błędu:**\n```json\n" + response.body() + "\n```\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
 
         } catch (Exception e) {
             System.err.println("Wystąpił błąd podczas żądania do Gemini API: " + e.getMessage());
-            return "### ⚠️ Plan wycieczki (Mock Fallback - wyjątek połączenia)\n\n" +
-                   "*Wystąpił problem techniczny podczas generowania planu AI: " + e.getMessage() + ". Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
+            return "### ⚠️ Plan wycieczki (Mock Fallback - wyjątek połączenia Gemini)\n\n" +
+                   "*Wystąpił problem techniczny podczas generowania planu AI Gemini: " + e.getMessage() + ". Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
+                   generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
+        }
+    }
+
+    private String generateTripPlanGroq(String nazwa, String miejsceDocelowe, LocalDate dataRozpoczecia, LocalDate dataZakonczenia, long dni, String prompt) {
+        try {
+            String url = "https://api.groq.com/openai/v1/chat/completions";
+            GroqRequest requestPayload = new GroqRequest("llama-3.3-70b-versatile", prompt);
+            String requestBody = objectMapper.writeValueAsString(requestPayload);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + apiKey.trim())
+                    .timeout(java.time.Duration.ofSeconds(35))
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode rootNode = objectMapper.readTree(response.body());
+                JsonNode textNode = rootNode.path("choices")
+                        .path(0)
+                        .path("message")
+                        .path("content");
+                if (!textNode.isMissingNode()) {
+                    return textNode.asText();
+                }
+            }
+
+            System.err.println("Groq API error. Status: " + response.statusCode() + ", Body: " + response.body());
+            return "### ⚠️ Plan wycieczki (Mock Fallback - błąd zewnętrznego API Groq)\n\n" +
+                   "*Nie udało się połączyć z API Groq (Status " + response.statusCode() + "). Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
+                   "**Szczegóły błędu:**\n```json\n" + response.body() + "\n```\n\n" +
+                   generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
+
+        } catch (Exception e) {
+            System.err.println("Wystąpił błąd podczas żądania do Groq API: " + e.getMessage());
+            return "### ⚠️ Plan wycieczki (Mock Fallback - wyjątek połączenia Groq)\n\n" +
+                   "*Wystąpił problem techniczny podczas generowania planu AI Groq: " + e.getMessage() + ". Poniżej znajduje się automatycznie wygenerowany plan zastępczy.*\n\n" +
                    generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
         }
     }
@@ -119,41 +170,25 @@ public class AiService {
         }
     }
 
-    private String generateMockPlan(String nazwa, String miejsceDocelowe, LocalDate start, LocalDate end, long dni) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("# 🎒 Plan Wycieczki: %s (%s)\n\n", nazwa, miejsceDocelowe));
-        sb.append(String.format("**Czas trwania:** %s do %s (%d dni)\n\n", start, end, dni));
-        sb.append("> ⚠️ *Uwaga: To jest automatyczny plan demonstracyjny (brak skonfigurowanego klucza GEMINI_API_KEY lub błąd połączenia).* \n\n");
+    // Klasy pomocnicze do poprawnej struktury JSON dla Groq API
+    public static class GroqRequest {
+        public String model;
+        public Message[] messages;
 
-        for (int i = 1; i <= dni; i++) {
-            sb.append(String.format("### 📅 Dzień %d\n", i));
-            if (i == 1) {
-                sb.append("- **08:00** – Zbiórka uczestników przed budynkiem szkoły i załadunek bagaży.\n");
-                sb.append("- **08:30** – Odjazd autokaru w kierunku celu podróży.\n");
-                sb.append(String.format("- **12:30** – Przyjazd do **%s**, zakwaterowanie w ośrodku wypoczynkowym.\n", miejsceDocelowe));
-                sb.append("- **13:30** – Wspólny obiad.\n");
-                sb.append("- **15:00** – Spacer zapoznawczy po okolicy z przewodnikiem i omówienie zasad bezpieczeństwa.\n");
-                sb.append("- **18:30** – Kolacja.\n");
-                sb.append("- **20:00** – Wieczór integracyjny (podział na grupy, gry i konkursy).\n");
-            } else if (i == dni) {
-                sb.append("- **08:30** – Śniadanie.\n");
-                sb.append("- **10:00** – Wykwaterowanie z pokoi i pakowanie bagaży.\n");
-                sb.append("- **11:00** – Zakup pamiątek i ostatni spacer rekreacyjny po okolicy.\n");
-                sb.append("- **13:00** – Obiad pożegnalny.\n");
-                sb.append("- **14:00** – Wyjazd w drogę powrotną.\n");
-                sb.append("- **18:00** – Planowany powrót pod szkołę i odbiór uczniów przez rodziców.\n");
-            } else {
-                sb.append("- **08:30** – Śniadanie.\n");
-                sb.append("- **09:30** – Wyjście na całodniowe zwiedzanie najciekawszych atrakcji turystycznych i zabytków.\n");
-                sb.append("- **13:30** – Lunch w formie suchego prowiantu w plenerze.\n");
-                sb.append("- **14:30** – Warsztaty edukacyjne / zajęcia tematyczne na miejscu.\n");
-                sb.append("- **16:30** – Powrót do ośrodka, czas wolny na odpoczynek i gry sportowe.\n");
-                sb.append("- **18:30** – Kolacja.\n");
-                sb.append("- **19:30** – Wspólne ognisko z pieczeniem kiełbasek i śpiewaniem piosenek.\n");
-            }
-            sb.append("\n");
+        public GroqRequest(String model, String promptText) {
+            this.model = model;
+            this.messages = new Message[]{ new Message("user", promptText) };
         }
-        return sb.toString();
+    }
+
+    public static class Message {
+        public String role;
+        public String content;
+
+        public Message(String role, String content) {
+            this.role = role;
+            this.content = content;
+        }
     }
 
     // Klasy pomocnicze do poprawnej struktury JSON dla Gemini API
