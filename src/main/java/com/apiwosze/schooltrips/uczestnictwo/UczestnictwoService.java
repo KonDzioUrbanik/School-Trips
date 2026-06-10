@@ -58,4 +58,31 @@ public class UczestnictwoService {
     public List<UczestnictwoModel> getAllUczestnicy(){
         return uczestnictwoRepository.findAll();
     }
+
+    public UczestnictwoModel oplacZaliczke(Long id, SimulatedPaymentDto paymentDto, String username) {
+        UczestnictwoModel uczestnictwo = uczestnictwoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Nie ma takiego uczestnictwa!"));
+
+        // Sprawdzamy, czy zalogowany użytkownik to uczeń i czy to jego własne zgłoszenie
+        UczenModel uczenZalogowany = uczenRepository.findByUserUsername(username).orElse(null);
+        if (uczenZalogowany != null && !uczestnictwo.getUczen().getId().equals(uczenZalogowany.getId())) {
+            throw new IllegalArgumentException("Brak uprawnień! Możesz opłacić zaliczkę tylko za własne zgłoszenia.");
+        }
+
+        if (uczestnictwo.isZaliczkaOplacona()) {
+            throw new IllegalArgumentException("Zaliczka na tę wycieczkę została już opłacona!");
+        }
+
+        // Symulacja odrzucenia karty dla numeru zaczynającego się od "4000"
+        String cleanCardNumber = paymentDto.cardNumber().replace(" ", "").replace("-", "");
+        if (cleanCardNumber.startsWith("4000")) {
+            throw new IllegalArgumentException("Błąd Stripe (Symulacja): Płatność odrzucona przez bank (kod: card_declined). Spróbuj użyć innej karty (np. testowej Stripe: 4242 4242 4242 4242).");
+        }
+
+        uczestnictwo.setZaliczkaOplacona(true);
+        uczestnictwo.setDataOplatyZaliczki(java.time.LocalDateTime.now());
+        uczestnictwo.setStripePaymentIntentId("pi_sim_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 18));
+
+        return uczestnictwoRepository.save(uczestnictwo);
+    }
 }

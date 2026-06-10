@@ -1138,3 +1138,67 @@ tr:hover td {
     background: var(--primary);
 }
 
+/* Weather Cards */
+.weather-card {
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    padding: 14px;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.weather-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.weather-card-date {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.weather-card-day {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 4px 0;
+}
+
+.weather-card-icon {
+    font-size: 1.8rem;
+    margin: 8px 0;
+}
+
+.weather-card-temp {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+}
+
+.weather-card-temp-max {
+    color: #fca5a5;
+}
+
+.weather-card-temp-min {
+    color: #93c5fd;
+}
+
+.weather-card-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+    line-height: 1.2;
+}
+
+/* Stripe simulated payment inputs */
+#stripe-payment-form input.form-control:focus {
+    border-color: #635bff;
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.25);
+}

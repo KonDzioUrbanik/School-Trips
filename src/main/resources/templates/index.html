@@ -719,6 +719,67 @@
         </div>
     </div>
 
+    <!-- MODAL: STRIPE PAYMENT MOCK -->
+    <div id="stripe-payment-modal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="background: #635bff; color: white; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.5px;">stripe</div>
+                    <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">Test Mode</span>
+                </div>
+                <button onclick="closeModal('stripe-payment-modal')" class="modal-close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="stripe-payment-form" onsubmit="submitStripePaymentForm(event)">
+                <input type="hidden" id="payment-participation-id">
+                <div class="modal-body" style="padding-top: 16px;">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <span style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Opłata zaliczki 20% za wycieczkę</span>
+                        <h3 id="payment-trip-name" style="margin: 8px 0; color: var(--primary); font-size: 1.3rem;">Wycieczka</h3>
+                        <div id="payment-amount-display" style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary); margin-top: 8px;">0.00 PLN</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment-email">Adres E-mail *</label>
+                        <input type="email" id="payment-email" class="form-control" placeholder="rodzic@example.com" required>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label>Informacje o karcie płatniczej *</label>
+                        <div style="border: 1px solid var(--glass-border); border-radius: var(--border-radius-sm); padding: 12px; background: rgba(255,255,255,0.02); display: flex; flex-direction: column; gap: 12px;">
+                            <div style="position: relative;">
+                                <input type="text" id="payment-card-number" class="form-control" placeholder="4242 4242 4242 4242" required style="border: none; background: transparent; padding-left: 0; width: 100%; box-shadow: none;" autocomplete="cc-number">
+                                <svg fill="currentColor" viewBox="0 0 24 24" style="width: 24px; height: 24px; position: absolute; right: 0; top: 8px; color: var(--text-secondary);">
+                                    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                                </svg>
+                            </div>
+                            <div style="display: flex; gap: 12px; border-top: 1px solid var(--glass-border); padding-top: 12px;">
+                                <input type="text" id="payment-card-expiry" class="form-control" placeholder="MM / YY" required style="border: none; background: transparent; padding-left: 0; width: 50%; box-shadow: none;" autocomplete="cc-exp">
+                                <input type="password" id="payment-card-cvc" class="form-control" placeholder="CVC" required style="border: none; background: transparent; padding-left: 0; width: 50%; box-shadow: none;" autocomplete="cc-csc">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label for="payment-card-name">Imię i nazwisko na karcie *</label>
+                        <input type="text" id="payment-card-name" class="form-control" placeholder="Jan Kowalski" required autocomplete="cc-name">
+                    </div>
+
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 20px;">
+                        Transakcja jest przetwarzana w bezpiecznym trybie testowym Stripe. <br>
+                        Użyj karty 4242 4242 4242 4242, aby zasymulować udaną transakcję.
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: none; padding-top: 0;">
+                    <button type="submit" id="btn-submit-payment" class="btn btn-primary btn-block" style="background: #635bff; border: none; font-weight: 600; padding: 14px 20px;">
+                        Zapłać teraz
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL: SZCZEGÓŁY WYCIECZKI I PLAN AI -->
     <div id="trip-details-modal" class="modal-backdrop">
         <div class="modal-card" style="max-width: 750px;">
@@ -765,6 +826,35 @@
                     <!-- Div do wstrzykiwania wyrenderowanego Markdownu -->
                     <div id="trip-plan-content" class="markdown-content" style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); border-radius: var(--border-radius-md); padding: 24px; min-height: 200px; max-height: 450px; overflow-y: auto;">
                         Brak planu wycieczki. Kliknij przycisk powyżej, aby wygenerować plan za pomocą AI.
+                    </div>
+                </div>
+
+                <!-- Sekcja pogody dla wycieczki -->
+                <div class="trip-weather-container" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--glass-border);">
+                    <h4 style="font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; margin: 0 0 16px 0;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px; color: #eab308;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                        </svg>
+                        Prognoza Pogody w Miejscu Docelowym ⛅
+                    </h4>
+                    
+                    <div id="trip-weather-source" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; font-style: italic;">
+                        Ładowanie danych pogodowych...
+                    </div>
+
+                    <div id="trip-weather-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
+                        <!-- Weather cards loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Sekcja zaliczki (tylko dla Ucznia) -->
+                <div id="trip-details-payment-section" class="hidden" style="margin-top: 24px; padding: 16px; background: rgba(99, 91, 255, 0.05); border: 1px solid rgba(99, 91, 255, 0.2); border-radius: var(--border-radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">Zaliczka rezerwacyjna wycieczki</div>
+                        <div id="trip-details-payment-status" style="font-size: 0.85rem; margin-top: 4px; color: var(--text-secondary);">Oczekiwanie na status...</div>
+                    </div>
+                    <div id="trip-details-payment-action">
+                        <!-- Przycisk opłaty zaliczki -->
                     </div>
                 </div>
 

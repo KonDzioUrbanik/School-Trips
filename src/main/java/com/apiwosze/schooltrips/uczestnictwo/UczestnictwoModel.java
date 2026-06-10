@@ -32,6 +32,10 @@ public class UczestnictwoModel extends BaseAuditEntity { // Dziedziczenie po kla
     @JoinColumn(name = "id_wycieczki") // Klucz obcy wskazujący na tabelę wycieczki
     private WycieczkaModel wycieczka; // Referencja do encji przypisanej wycieczki
 
+    private boolean zaliczkaOplacona; // Czy opłacono zaliczkę 20%
+    private java.time.LocalDateTime dataOplatyZaliczki; // Data i czas opłacenia zaliczki
+    private String stripePaymentIntentId; // Identyfikator płatności Stripe (symulowany)
+
     @OneToOne(mappedBy = "uczestnictwo") // Relacja jeden-do-jednego: jedno uczestnictwo ma dokładnie jedną powiązaną zgodę rodzica
     @JsonIgnore
     private ZgodaRodzicaModel zgoda_rodzica; // Referencja do encji zgody rodzica

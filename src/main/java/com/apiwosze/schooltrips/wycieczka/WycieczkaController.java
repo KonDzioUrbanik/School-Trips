@@ -16,11 +16,13 @@ public class WycieczkaController {
     private final WycieczkaService wycieczkaService;
     private final AiService aiService;
     private final PdfService pdfService;
+    private final WeatherService weatherService;
 
-    public WycieczkaController(WycieczkaService wycieczkaService, AiService aiService, PdfService pdfService) {
+    public WycieczkaController(WycieczkaService wycieczkaService, AiService aiService, PdfService pdfService, WeatherService weatherService) {
         this.wycieczkaService = wycieczkaService;
         this.aiService = aiService;
         this.pdfService = pdfService;
+        this.weatherService = weatherService;
     }
 
     @PostMapping("/{id}/generuj-plan")
@@ -87,5 +89,12 @@ public class WycieczkaController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=uczestnicy_wycieczki_" + id + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
+    }
+
+    @GetMapping("/{id}/pogoda")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
+    public WeatherDto getPogodaDlaWycieczki(@PathVariable Long id) {
+        WycieczkaModel wycieczka = wycieczkaService.getWycieczkaById(id);
+        return weatherService.getWeatherForTrip(wycieczka);
     }
 }

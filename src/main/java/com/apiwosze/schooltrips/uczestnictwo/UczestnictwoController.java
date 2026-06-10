@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -43,5 +44,13 @@ public class UczestnictwoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL')")
     public UczestnictwoModel updateUczestnictwo(@PathVariable Long id, @RequestBody @Valid UczestnictwoDto uczestnictwoDto){
         return uczestnictwoService.updateUczestnictwo(id, uczestnictwoDto);
+    }
+
+    @PostMapping("/{id}/oplac-zaliczke")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NAUCZYCIEL', 'UCZEN_RODZIC')")
+    public UczestnictwoModel oplacZaliczke(@PathVariable Long id, 
+                                           @RequestBody @Valid SimulatedPaymentDto paymentDto, 
+                                           Principal principal) {
+        return uczestnictwoService.oplacZaliczke(id, paymentDto, principal.getName());
     }
 }

@@ -494,7 +494,10 @@ async function loadParticipations() {
                 wycieczkaId: p.wycieczkaId || (p.wycieczka ? p.wycieczka.id : null),
                 czyJedzie: p.czyJedzie !== undefined ? p.czyJedzie : (p.czy_jedzie !== undefined ? p.czy_jedzie : false),
                 uwagi: p.uwagi,
-                dataZapisania: p.dataZapisania || p.data_zapisania
+                dataZapisania: p.dataZapisania || p.data_zapisania,
+                zaliczkaOplacona: p.zaliczkaOplacona,
+                dataOplatyZaliczki: p.dataOplatyZaliczki,
+                stripePaymentIntentId: p.stripePaymentIntentId
             }));
             renderParticipations();
         }
@@ -828,8 +831,12 @@ function renderParticipations() {
         const studentName = student ? `${student.imie} ${student.nazwisko}` : `Uczeń (ID: ${part.uczenId})`;
         const tripName = wycieczka ? wycieczka.nazwa : `Wycieczka (ID: ${part.wycieczkaId})`;
         
+        const paymentBadge = part.zaliczkaOplacona 
+            ? `<br><span class="status-badge status-zakonczona" style="font-size:0.7rem; margin-top:4px; background:rgba(99,91,255,0.15); border:1px solid rgba(99,91,255,0.4); color:#a78bfa;">Zaliczka Opłacona</span>` 
+            : `<br><span class="status-badge status-planowana" style="font-size:0.7rem; margin-top:4px;">Zaliczka Nieopłacona</span>`;
+            
         const isGoingText = part.czyJedzie 
-            ? '<span class="status-badge status-zakonczona" style="font-size:0.75rem;">Jedzie</span>' 
+            ? `<span class="status-badge status-zakonczona" style="font-size:0.75rem;">Jedzie</span>${paymentBadge}` 
             : '<span class="status-badge status-planowana" style="font-size:0.75rem;">Nie jedzie</span>';
             
         let consentBadge = '<span class="status-badge status-planowana" style="font-size:0.7rem;">Brak Zgody</span>';
@@ -1112,6 +1119,42 @@ async function openTripDetails(tripId) {
         } else {
             partContainer.classList.add('hidden');
         }
+    }
+
+    // Ładowanie prognozy pogody dla wycieczki
+    loadWeatherForDetails(tripId);
+
+    // Sekcja płatności (tylko dla ucznia, który jest zapisany na tę wycieczkę)
+    const paymentSection = document.getElementById('trip-details-payment-section');
+    const paymentStatus = document.getElementById('trip-details-payment-status');
+    const paymentAction = document.getElementById('trip-details-payment-action');
+    
+    if (paymentSection && currentUser.role === 'ROLE_UCZEN_RODZIC' && currentUser.studentId) {
+        const myParticipation = (state.uczestnictwa || []).find(
+            p => p.wycieczkaId === tripId && p.uczenId === currentUser.studentId
+        );
+        
+        if (myParticipation && myParticipation.czyJedzie) {
+            paymentSection.classList.remove('hidden');
+            if (myParticipation.zaliczkaOplacona) {
+                const dateStr = myParticipation.dataOplatyZaliczki
+                    ? new Date(myParticipation.dataOplatyZaliczki).toLocaleDateString('pl-PL')
+                    : 'nieznana';
+                paymentStatus.innerHTML = `<span style="color:#4ade80; font-weight:600;">✔ Zaliczka opłacona</span> · ${dateStr}`;
+                paymentAction.innerHTML = `<span class="status-badge status-zakonczona" style="padding: 6px 14px;">Opłacono ✔</span>`;
+            } else {
+                const advanceAmt = ((koszt) * 0.20).toFixed(2);
+                paymentStatus.textContent = 'Zaliczka nie została jeszcze opłacona.';
+                paymentAction.innerHTML = `
+                    <button class="btn btn-primary btn-sm" style="background:#635bff;border:none;" onclick="openStripePaymentModal(${myParticipation.id}, '${trip.nazwa}', ${advanceAmt})">
+                        Opłać zaliczkę (${advanceAmt} PLN) 💳
+                    </button>`;
+            }
+        } else {
+            paymentSection.classList.add('hidden');
+        }
+    } else if (paymentSection) {
+        paymentSection.classList.add('hidden');
     }
 
     openModal('trip-details-modal');
@@ -1936,4 +1979,145 @@ function showAlert(type, message) {
         alertDiv.style.transform = 'translateX(40px)';
         setTimeout(() => alertDiv.remove(), 500);
     }, 4500);
+}
+
+// ================= POGODA =================
+
+async function loadWeatherForDetails(tripId) {
+    const weatherGrid = document.getElementById('trip-weather-grid');
+    const weatherSource = document.getElementById('trip-weather-source');
+    if (!weatherGrid || !weatherSource) return;
+
+    weatherGrid.innerHTML = '';
+    weatherSource.textContent = 'Ładowanie danych pogodowych...';
+
+    try {
+        const res = await fetchWithAuth(`${API_BASE}/wycieczka/${tripId}/pogoda`);
+        if (!res.ok) {
+            weatherSource.textContent = 'Nie udało się pobrać prognozy pogody.';
+            return;
+        }
+        const data = await res.json();
+
+        if (!data || !data.days || data.days.length === 0) {
+            weatherSource.textContent = 'Brak danych pogodowych dla tego miejsca.';
+            return;
+        }
+
+        weatherSource.textContent = `Źródło: Open-Meteo · ${data.locationName || data.location || 'Miejscowość docelowa'}`;
+
+        const weatherCodeMap = {
+            0:  { icon: '☀️', desc: 'Bezchmurnie' },
+            1:  { icon: '🌤️', desc: 'Przeważnie słonecznie' },
+            2:  { icon: '⛅', desc: 'Częściowe zachmurzenie' },
+            3:  { icon: '☁️', desc: 'Pochmurno' },
+            45: { icon: '🌫️', desc: 'Mgła' },
+            48: { icon: '🌫️', desc: 'Szadź' },
+            51: { icon: '🌦️', desc: 'Lekka mżawka' },
+            61: { icon: '🌧️', desc: 'Lekki deszcz' },
+            63: { icon: '🌧️', desc: 'Umiarkowany deszcz' },
+            65: { icon: '🌧️', desc: 'Silny deszcz' },
+            71: { icon: '🌨️', desc: 'Lekki śnieg' },
+            80: { icon: '🌦️', desc: 'Przelotne opady' },
+            95: { icon: '⛈️', desc: 'Burza' }
+        };
+
+        weatherGrid.innerHTML = data.days.map(day => {
+            const date = new Date(day.date);
+            const dayName = date.toLocaleDateString('pl-PL', { weekday: 'short' });
+            const dateLabel = date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' });
+            const code = day.weatherCode || 0;
+            const weather = weatherCodeMap[code] || { icon: '🌡️', desc: 'Brak danych' };
+
+            return `
+                <div class="weather-card">
+                    <div class="weather-card-date">${dateLabel}</div>
+                    <div class="weather-card-day">${dayName}</div>
+                    <div class="weather-card-icon">${weather.icon}</div>
+                    <div class="weather-card-temp">
+                        <span class="weather-card-temp-max">${Math.round(day.tempMax ?? 0)}°</span>
+                        <span class="weather-card-temp-min">${Math.round(day.tempMin ?? 0)}°</span>
+                    </div>
+                    <span class="weather-card-desc">${weather.desc}</span>
+                </div>`;
+        }).join('');
+
+    } catch (e) {
+        console.error('Błąd pobierania pogody:', e);
+        weatherSource.textContent = 'Wystąpił błąd podczas pobierania prognozy pogody.';
+    }
+}
+
+// ================= STRIPE PAYMENT SIMULATION =================
+
+function openStripePaymentModal(participationId, tripName, amount) {
+    document.getElementById('payment-participation-id').value = participationId;
+    document.getElementById('payment-trip-name').textContent = tripName;
+    document.getElementById('payment-amount-display').textContent = `${Number(amount).toFixed(2)} PLN`;
+    document.getElementById('payment-email').value = '';
+    document.getElementById('payment-card-number').value = '';
+    document.getElementById('payment-card-expiry').value = '';
+    document.getElementById('payment-card-cvc').value = '';
+    document.getElementById('payment-card-name').value = '';
+    openModal('stripe-payment-modal');
+}
+
+async function submitStripePaymentForm(event) {
+    event.preventDefault();
+    const submitBtn = document.getElementById('btn-submit-payment');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading"></span> Przetwarzanie...';
+
+    const participationId = document.getElementById('payment-participation-id').value;
+    const cardNumber = document.getElementById('payment-card-number').value;
+    const cardExpiry = document.getElementById('payment-card-expiry').value;
+    const cardCvc = document.getElementById('payment-card-cvc').value;
+    const cardName = document.getElementById('payment-card-name').value;
+    const email = document.getElementById('payment-email').value;
+
+    try {
+        // Symulowane opóźnienie procesowania płatności
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const res = await fetchWithAuth(`${API_BASE}/uczestnictwo/${participationId}/oplac-zaliczke`, {
+            method: 'POST',
+            body: JSON.stringify({
+                cardNumber: cardNumber.replace(/\s/g, ''),
+                expiryDate: cardExpiry,
+                cvc: cardCvc,
+                nameOnCard: cardName,
+                email
+            })
+        });
+
+        if (res.ok) {
+            const updated = await res.json();
+            // Aktualizujemy stan lokalny
+            const idx = state.uczestnictwa.findIndex(p => p.id === updated.id);
+            if (idx !== -1) {
+                state.uczestnictwa[idx].zaliczkaOplacona = updated.zaliczkaOplacona;
+                state.uczestnictwa[idx].dataOplatyZaliczki = updated.dataOplatyZaliczki;
+                state.uczestnictwa[idx].stripePaymentIntentId = updated.stripePaymentIntentId;
+            }
+
+            closeModal('stripe-payment-modal');
+            showAlert('success', `✔ Zaliczka opłacona pomyślnie! ID transakcji: ${updated.stripePaymentIntentId}`);
+
+            // Odśwież widok szczegółów wycieczki
+            if (selectedTripForDetailsId) {
+                openTripDetails(selectedTripForDetailsId);
+            }
+            renderParticipations();
+        } else {
+            const errData = await res.json().catch(() => ({}));
+            showAlert('error', errData.message || 'Błąd podczas przetwarzania płatności.');
+        }
+    } catch (e) {
+        console.error('Błąd płatności Stripe:', e);
+        showAlert('error', 'Wystąpił błąd połączenia. Spróbuj ponownie.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
 }
