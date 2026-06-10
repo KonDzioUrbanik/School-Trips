@@ -15,9 +15,10 @@ import java.math.BigDecimal; // Import klasy do obsługi cen
 @Service // Rejestracja jako serwis w kontenerze Springa
 public class PdfService {
 
-    // Metoda generująca dokument PDF ze zgodą rodzica i zwracająca go jako tablicę bajtów (byte[])
+    // Metoda generująca dokument PDF ze zgodą rodzica i zwracająca go jako tablicę
+    // bajtów (byte[])
     public byte[] generateConsentPdf(ZgodaRodzicaModel zgoda) {
-        
+
         // Pobranie danych o uczestnictwie, uczniu oraz wycieczce powiązanych z tą zgodą
         var uczestnictwo = zgoda.getUczestnictwo();
         UczenModel uczen = uczestnictwo.getUczen();
@@ -32,8 +33,10 @@ public class PdfService {
             PdfWriter.getInstance(document, out);
             document.open(); // Otwarcie dokumentu w celu edycji i dodawania treści
 
-            // Konfiguracja czcionek z obsługą polskich znaków diakrytycznych (kodowanie Cp1250)
-            // Używamy standardowej czcionki Helvetica w różnych rozmiarach i stylach (gruba, normalna, kursywa)
+            // Konfiguracja czcionek z obsługą polskich znaków diakrytycznych (kodowanie
+            // Cp1250)
+            // Używamy standardowej czcionki Helvetica w różnych rozmiarach i stylach
+            // (gruba, normalna, kursywa)
             Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, "Cp1250", true, 16);
             Font sectionHeaderFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, "Cp1250", true, 12);
             Font bodyFont = FontFactory.getFont(FontFactory.HELVETICA, "Cp1250", true, 11);
@@ -41,7 +44,9 @@ public class PdfService {
             Font boldBodyFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, "Cp1250", true, 11);
 
             // 1. Nagłówek dokumentu (Tytuł zgody) - wyśrodkowany
-            Paragraph title = new Paragraph("OSWIADCZENIE I ZGODA RODZICA / OPIEKUNA PRAWNEGO\nNA UDZIAL DZIECKA W WYCIECZCE SZKOLNEJ", titleFont);
+            Paragraph title = new Paragraph(
+                    "OSWIADCZENIE I ZGODA RODZICA / OPIEKUNA PRAWNEGO\nNA UDZIAL DZIECKA W WYCIECZCE SZKOLNEJ",
+                    titleFont);
             title.setAlignment(Element.ALIGN_CENTER); // Wyśrodkowanie
             title.setSpacingAfter(25); // Odstęp pod tytułem
             document.add(title); // Dodanie elementu do dokumentu
@@ -57,7 +62,10 @@ public class PdfService {
             studentDetails.add("Imie i nazwisko ucznia: ");
             studentDetails.add(new Chunk(uczen.getImie() + " " + uczen.getNazwisko() + "\n", boldBodyFont));
             studentDetails.add("Klasa: ");
-            studentDetails.add(new Chunk(uczen.getKlasa() != null ? uczen.getKlasa().getNazwa() + " (" + uczen.getKlasa().getProfil() + ")" : "Nieprzypisana", boldBodyFont));
+            studentDetails.add(new Chunk(
+                    uczen.getKlasa() != null ? uczen.getKlasa().getNazwa() + " (" + uczen.getKlasa().getProfil() + ")"
+                            : "Nieprzypisana",
+                    boldBodyFont));
             studentDetails.setSpacingAfter(20);
             document.add(studentDetails);
 
@@ -74,7 +82,9 @@ public class PdfService {
             tripDetails.add("Miejsce docelowe: ");
             tripDetails.add(new Chunk(wycieczka.getMiejsce_docelowe() + "\n", boldBodyFont));
             tripDetails.add("Termin wycieczki: ");
-            tripDetails.add(new Chunk("od " + wycieczka.getData_rozpoczecia() + " do " + wycieczka.getData_zakonczenia() + "\n", boldBodyFont));
+            tripDetails.add(
+                    new Chunk("od " + wycieczka.getData_rozpoczecia() + " do " + wycieczka.getData_zakonczenia() + "\n",
+                            boldBodyFont));
             tripDetails.add("Koszt na osobe: ");
             BigDecimal koszt = wycieczka.getKoszt_na_osobe() != null ? wycieczka.getKoszt_na_osobe() : BigDecimal.ZERO;
             tripDetails.add(new Chunk(koszt + " PLN\n", boldBodyFont));
@@ -89,8 +99,10 @@ public class PdfService {
             Paragraph declarationText = new Paragraph();
             declarationText.setFont(bodyFont);
             declarationText.add("Wyrazam zgode na udzial mojego dziecka w wyzej wymienionej wycieczce szkolnej.\n");
-            declarationText.add("Zobowiazuje sie do uregulowania kosztu wycieczki w wysokosci " + koszt + " PLN w wyznaczonym terminie.\n");
-            declarationText.add("Oswiadczam, ze dziecko nie ma zadnych przeciwwskazan zdrowotnych do udzialu w tej wycieczce. ");
+            declarationText.add("Zobowiazuje sie do uregulowania kosztu wycieczki w wysokosci " + koszt
+                    + " PLN w wyznaczonym terminie.\n");
+            declarationText.add(
+                    "Oswiadczam, ze dziecko nie ma zadnych przeciwwskazan zdrowotnych do udzialu w tej wycieczce. ");
             if (uczestnictwo.getUwagi() != null && !uczestnictwo.getUwagi().isBlank()) {
                 declarationText.add("\nUwagi dotyczace zdrowia/inne: " + uczestnictwo.getUwagi() + "\n");
             } else {
@@ -105,12 +117,15 @@ public class PdfService {
             signatureTable.setWidth(100); // 100% szerokości strony
 
             // Lewa kolumna: data podpisania
-            Cell dateCell = new Cell(new Paragraph("Miejscowosc: .........................\n\nData: .........................", bodyFont));
+            Cell dateCell = new Cell(new Paragraph(
+                    "Miejscowosc: .........................\n\nData: .........................", bodyFont));
             dateCell.setBorder(Cell.NO_BORDER);
             signatureTable.addCell(dateCell);
 
             // Prawa kolumna: miejsce na podpis rodzica
-            Cell signatureCell = new Cell(new Paragraph(".......................................................\n(Czytelny podpis rodzica/opiekuna)", bodyFont));
+            Cell signatureCell = new Cell(new Paragraph(
+                    ".......................................................\n(Czytelny podpis rodzica/opiekuna)",
+                    bodyFont));
             signatureCell.setHorizontalAlignment(HorizontalAlignment.CENTER);
             signatureCell.setBorder(Cell.NO_BORDER);
             signatureTable.addCell(signatureCell);
@@ -118,7 +133,8 @@ public class PdfService {
             document.add(signatureTable); // Dodanie tabeli podpisu do dokumentu
 
             // 6. Stopka dokumentu (informacje o systemie)
-            Paragraph footer = new Paragraph("\n\n\nDokument wygenerowany automatycznie przez system School-Trips.", italicFont);
+            Paragraph footer = new Paragraph("\n\n\nDokument wygenerowany automatycznie przez system WycieczeX.",
+                    italicFont);
             footer.setAlignment(Element.ALIGN_CENTER);
             document.add(footer);
 
@@ -169,7 +185,9 @@ public class PdfService {
             tripDetails.add("Miejsce docelowe: ");
             tripDetails.add(new Chunk(wycieczka.getMiejsce_docelowe() + "\n", boldBodyFont));
             tripDetails.add("Termin wycieczki: ");
-            tripDetails.add(new Chunk("od " + wycieczka.getData_rozpoczecia() + " do " + wycieczka.getData_zakonczenia() + "\n", boldBodyFont));
+            tripDetails.add(
+                    new Chunk("od " + wycieczka.getData_rozpoczecia() + " do " + wycieczka.getData_zakonczenia() + "\n",
+                            boldBodyFont));
             tripDetails.add("Koszt na osobe: ");
             tripDetails.add(new Chunk(koszt + " PLN\n", boldBodyFont));
             tripDetails.add("Wymagana zaliczka (20%): ");
@@ -190,7 +208,7 @@ public class PdfService {
             } else {
                 Table guidesTable = new Table(3);
                 guidesTable.setWidth(100);
-                
+
                 Cell h1 = new Cell(new Paragraph("Imie i Nazwisko", boldBodyFont));
                 Cell h2 = new Cell(new Paragraph("Rola", boldBodyFont));
                 Cell h3 = new Cell(new Paragraph("Telefon kontaktowy", boldBodyFont));
@@ -200,7 +218,8 @@ public class PdfService {
 
                 for (var o : opiekunowieList) {
                     var nauczyciel = o.getNauczyciel();
-                    String name = nauczyciel != null ? nauczyciel.getImie() + " " + nauczyciel.getNazwisko() : "Nieznany";
+                    String name = nauczyciel != null ? nauczyciel.getImie() + " " + nauczyciel.getNazwisko()
+                            : "Nieznany";
                     String roleStr = o.getRola() != null ? o.getRola().toString() : "OPIEKUN";
                     String tel = nauczyciel != null ? nauczyciel.getTelefon_kontaktowy() : "-";
 
@@ -235,8 +254,8 @@ public class PdfService {
                 for (var u : uczestnicyList) {
                     UczenModel uczen = u.getUczen();
                     String name = uczen != null ? uczen.getImie() + " " + uczen.getNazwisko() : "Nieznany";
-                    String classStr = (uczen != null && uczen.getKlasa() != null) 
-                            ? uczen.getKlasa().getNazwa() + " (" + uczen.getKlasa().getProfil() + ")" 
+                    String classStr = (uczen != null && uczen.getKlasa() != null)
+                            ? uczen.getKlasa().getNazwa() + " (" + uczen.getKlasa().getProfil() + ")"
                             : "Brak";
                     String statusStr = u.isCzy_jedzie() ? "Jedzie" : "Nie jedzie";
                     String notesStr = (u.getUwagi() != null && !u.getUwagi().isBlank()) ? u.getUwagi() : "-";
@@ -251,7 +270,8 @@ public class PdfService {
             }
 
             // Stopka
-            Paragraph footer = new Paragraph("\nDokument wygenerowany automatycznie przez system School-Trips.", italicFont);
+            Paragraph footer = new Paragraph("\nDokument wygenerowany automatycznie przez system School-Trips.",
+                    italicFont);
             footer.setAlignment(Element.ALIGN_CENTER);
             document.add(footer);
 
