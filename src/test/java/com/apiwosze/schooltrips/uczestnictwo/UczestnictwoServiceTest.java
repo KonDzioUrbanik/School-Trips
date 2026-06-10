@@ -62,7 +62,7 @@ class UczestnictwoServiceTest {
         assertNotNull(result);
         assertEquals(uczen, result.getUczen());
         assertEquals(wycieczka, result.getWycieczka());
-        assertTrue(result.isCzy_jedzie());
+        assertTrue(result.isCzyJedzie());
         assertEquals("Brak", result.getUwagi());
         assertEquals(LocalDate.now(), result.getData_zapisania());
 

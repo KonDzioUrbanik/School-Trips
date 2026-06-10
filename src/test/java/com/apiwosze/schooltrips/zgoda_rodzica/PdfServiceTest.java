@@ -71,7 +71,7 @@ class PdfServiceTest {
         uczestnictwo.setId(1L);
         uczestnictwo.setUczen(uczen);
         uczestnictwo.setWycieczka(wycieczka);
-        uczestnictwo.setCzy_jedzie(true);
+        uczestnictwo.setCzyJedzie(true);
         uczestnictwo.setUwagi("Dieta wegetariańska");
         uczestnictwo.setData_zapisania(LocalDate.now());
 
