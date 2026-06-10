@@ -48,8 +48,8 @@ public class SecurityConfig {
                 )
                 // Konfiguracja reguł autoryzacji adresów URL (endpointów)
                 .authorizeHttpRequests(auth -> auth
-                        // Zezwolenie każdemu na dostęp do strony głównej, plików statycznych oraz dokumentacji Swagger API i OpenAPI docs
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // Zezwolenie każdemu na dostęp do strony głównej, plików statycznych (w tym obrazów) oraz dokumentacji Swagger API i OpenAPI docs
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/images/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // Zezwolenie każdemu na endpointy logowania, odświeżania tokenu i wylogowania
                         .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         // Każde inne żądanie do aplikacji wymaga bycia uwierzytelnionym (posiadania ważnego tokenu JWT)
