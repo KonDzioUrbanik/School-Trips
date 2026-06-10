@@ -423,7 +423,15 @@ async function loadParticipations() {
     try {
         const res = await fetchWithAuth(`${API_BASE}/uczestnictwo`);
         if (res.ok) {
-            state.uczestnictwa = await res.json();
+            const rawData = await res.json();
+            state.uczestnictwa = rawData.map(p => ({
+                id: p.id,
+                uczenId: p.uczenId || (p.uczen ? p.uczen.id : null),
+                wycieczkaId: p.wycieczkaId || (p.wycieczka ? p.wycieczka.id : null),
+                czyJedzie: p.czyJedzie !== undefined ? p.czyJedzie : (p.czy_jedzie !== undefined ? p.czy_jedzie : false),
+                uwagi: p.uwagi,
+                dataZapisania: p.dataZapisania || p.data_zapisania
+            }));
             renderParticipations();
         }
     } catch (e) {
@@ -435,7 +443,14 @@ async function loadConsents() {
     try {
         const res = await fetchWithAuth(`${API_BASE}/zgoda_rodzica`);
         if (res.ok) {
-            state.zgody = await res.json();
+            const rawData = await res.json();
+            state.zgody = rawData.map(z => ({
+                id: z.id,
+                uczestnictwoId: z.uczestnictwoId || (z.uczestnictwo ? z.uczestnictwo.id : null),
+                forma: z.forma,
+                czyDostarczona: z.czyDostarczona !== undefined ? z.czyDostarczona : (z.czy_dostarczona !== undefined ? z.czy_dostarczona : false),
+                dataPodpisania: z.dataPodpisania || z.data_podpisania
+            }));
             renderParticipations(); // Przeładuj widok zapisów, ponieważ zgody są tam wyświetlane
         }
     } catch (e) {
