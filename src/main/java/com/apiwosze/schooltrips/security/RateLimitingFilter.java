@@ -35,11 +35,11 @@ public class RateLimitingFilter implements Filter {
                 .build();
     }
 
-    // Definiowanie limitów dla pozostałych zapytań API: maksymalnie 100 zapytań na minutę
+    // Definiowanie limitów dla pozostałych zapytań API: maksymalnie 500 zapytań na minutę
     private Bucket createApiBucket() {
         return Bucket.builder()
-                // Limit: pojemność 100 tokenów, uzupełniane w ilości 100 tokenów co 1 minutę
-                .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1))))
+                // Limit: pojemność 500 tokenów, uzupełniane w ilości 500 tokenów co 1 minutę
+                .addLimit(Bandwidth.classic(500, Refill.intervally(500, Duration.ofMinutes(1))))
                 .build();
     }
 
@@ -53,6 +53,12 @@ public class RateLimitingFilter implements Filter {
         
         String ip = httpRequest.getRemoteAddr(); // Pobranie adresu IP klienta
         String path = httpRequest.getRequestURI(); // Pobranie ścieżki żądania (URI)
+        
+        // Pomiń limitowanie dla zasobów statycznych i stron (limitujemy tylko rzeczywiste API)
+        if (!path.startsWith("/api/")) {
+            chain.doFilter(request, response);
+            return;
+        }
         
         Bucket bucket;
         // Rozróżnienie limitów na podstawie ścieżki żądania
