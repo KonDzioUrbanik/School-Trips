@@ -38,8 +38,13 @@ public class AiService {
                 nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni
         );
 
-        if (apiKey == null || apiKey.trim().isEmpty()) {
-            System.out.println("GEMINI_API_KEY nie jest skonfigurowany. Generowanie planu próbnego (Mock Fallback).");
+        if (apiKey == null || apiKey.trim().isEmpty() || 
+            apiKey.contains("${") || 
+            apiKey.equalsIgnoreCase("undefined") || 
+            apiKey.equalsIgnoreCase("null") || 
+            apiKey.equalsIgnoreCase("placeholder") ||
+            apiKey.trim().length() < 10) {
+            System.out.println("GEMINI_API_KEY nie jest skonfigurowany lub jest nieprawidłowy. Generowanie planu próbnego (Mock Fallback).");
             return generateMockPlan(nazwa, miejsceDocelowe, dataRozpoczecia, dataZakonczenia, dni);
         }
 
