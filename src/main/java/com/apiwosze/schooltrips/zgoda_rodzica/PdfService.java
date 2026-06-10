@@ -138,6 +138,20 @@ public class PdfService {
             footer.setAlignment(Element.ALIGN_CENTER);
             document.add(footer);
 
+            try {
+                var imageStream = getClass().getResourceAsStream("/static/images/logo.png");
+                if (imageStream != null) {
+                    byte[] imageBytes = imageStream.readAllBytes();
+                    Image logoImg = Image.getInstance(imageBytes);
+                    logoImg.scaleToFit(50, 50);
+                    logoImg.setAlignment(Element.ALIGN_CENTER);
+                    logoImg.setSpacingBefore(8);
+                    document.add(logoImg);
+                }
+            } catch (Exception e) {
+                System.err.println("Nie udalo sie dodac logo do PDF: " + e.getMessage());
+            }
+
             document.close(); // Zamknięcie dokumentu (ostateczny zapis bajtów)
 
         } catch (DocumentException e) {
@@ -270,10 +284,24 @@ public class PdfService {
             }
 
             // Stopka
-            Paragraph footer = new Paragraph("\nDokument wygenerowany automatycznie przez system School-Trips.",
+            Paragraph footer = new Paragraph("\nDokument wygenerowany automatycznie przez system WycieczeX.",
                     italicFont);
             footer.setAlignment(Element.ALIGN_CENTER);
             document.add(footer);
+
+            try {
+                var imageStream = getClass().getResourceAsStream("/static/images/logo.png");
+                if (imageStream != null) {
+                    byte[] imageBytes = imageStream.readAllBytes();
+                    Image logoImg = Image.getInstance(imageBytes);
+                    logoImg.scaleToFit(50, 50);
+                    logoImg.setAlignment(Element.ALIGN_CENTER);
+                    logoImg.setSpacingBefore(8);
+                    document.add(logoImg);
+                }
+            } catch (Exception e) {
+                System.err.println("Nie udalo sie dodac logo do PDF: " + e.getMessage());
+            }
 
             document.close();
         } catch (DocumentException e) {
